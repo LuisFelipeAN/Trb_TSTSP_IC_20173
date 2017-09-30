@@ -1,11 +1,19 @@
 #include "Vertice.h"
 
-Vertice::Vertice()
+Vertice::Vertice(){
+    id=-1;
+}
+Vertice::Vertice(int indice, double cordX, double cordY,int indiceCluster,int indiceTabu)
 {
-    //ctor
+    id=indice;
+    x=cordX;
+    y=cordY;
+    idTabu=indiceTabu;
+    idCluster = indiceCluster;
+    prox=NULL;
 }
 
 Vertice::~Vertice()
 {
-    //dtor
+     prox=NULL;
 }

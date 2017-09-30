@@ -4,7 +4,7 @@ using namespace std;
 
 int main(int argc, char** args)
 {
-
+    atexit(desalocaMemoria);
     FILE* arquivo = stdin;
     if ( argc == 3 ) {
         arquivo = fopen(args[1], "r");
@@ -22,6 +22,12 @@ int main(int argc, char** args)
                   }
 
     inicializa(arquivo);
-    desalocaMemoria();
+    construtivo();
+    imprimeVerificacaoViabilidade();
+    imprimeTabus();
+    fprintf(stdout,"Custo da Solucao: %d\n",calculaCustoSolucao());
+    imprimeSolucao();
+
+
     return 0;
 }

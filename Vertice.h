@@ -2,6 +2,7 @@
 #define VERTICE_H
 #include <stdio.h>
 #include <math.h>
+#include <cstdlib>
 class Vertice
 {
     private:
@@ -20,7 +21,7 @@ class Vertice
 
         int getIndiceTabu(){return idTabu;}
         int getIndiceCluster(){return idCluster;}
-        double calculaCusto(Vertice *v){return sqrt( pow(v->getCordX()-x,2)+pow(v->getCordY()-y,2));};
+        double calculaCusto(Vertice *v);
         int getIDVertice(){return id;}
         double getCordX(){return x;}
         double getCordY(){return y;}

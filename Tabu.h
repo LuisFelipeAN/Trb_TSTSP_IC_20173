@@ -11,7 +11,9 @@ class Tabu
     public:
         bool visitado;
         void insereVertice(Vertice *v);
-        Vertice * outroVertice(Vertice *v);
+        Vertice *outroVertice(Vertice *v);
+        Vertice *getRandom();
+        void imprimeVertices();
         Tabu();
         virtual ~Tabu();
 
@@ -19,6 +21,7 @@ class Tabu
 
 
     private:
+    int numVertices;
     NoTabu *primeiroNo;
     NoTabu *ultimoNo;
 

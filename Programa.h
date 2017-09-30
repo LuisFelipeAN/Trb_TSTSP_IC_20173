@@ -4,14 +4,20 @@
 #include <string.h>
 #include <stdio.h>
 using namespace std;
-/*
-template <class Type>
-class No {
-public:
-    Type exp;
-    No<Type>* prox;
-    No<Type>(){prox = NULL;}
-};*/
+
+
 void inicializa(FILE* arquivo);
+
+void construtivo();
+
+void imprimeSolucao();
+
+void imprimeTabus();
+
+void imprimeVerificacaoViabilidade();
+
+int calculaCustoSolucao();
+
 void desalocaMemoria();
+
 #endif // PROGRAMA_H_INCLUDED

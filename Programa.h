@@ -16,6 +16,8 @@ void imprimeTabus();
 
 void imprimeVerificacaoViabilidade();
 
+void buscaLocal();
+
 int calculaCustoSolucao();
 
 void desalocaMemoria();

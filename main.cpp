@@ -27,7 +27,8 @@ int main(int argc, char** args)
     imprimeTabus();
     fprintf(stdout,"Custo da Solucao: %d\n",calculaCustoSolucao());
     imprimeSolucao();
-
+    buscaLocal();
+    imprimeTabus();
 
     return 0;
 }

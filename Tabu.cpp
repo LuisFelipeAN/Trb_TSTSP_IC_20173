@@ -22,13 +22,40 @@ void Tabu::insereVertice(Vertice* v){
         ultimoNo = novo;
     }
 }
+///retorna o primeiro vertice diferente do vertice passado
 Vertice* Tabu::outroVertice(Vertice *v){
-    for(NoTabu *aux = primeiroNo;aux!=NULL;aux=aux->proximo){
-        if(aux->vertice==v){
-            fprintf(stdout,"OK-- v:%d  T:%d\n",v->getIDVertice(),v->getIndiceTabu());
+    Vertice* retorno=NULL;
+    NoTabu* aux;
+    NoTabu* percorre;
+    if(primeiroNo->vertice==v&&primeiroNo->proximo!=NULL){///retorna o segundo vertice da lista encadeada
+
+        retorno=primeiroNo->proximo->vertice;
+        aux=primeiroNo;
+
+        ultimoNo->proximo=primeiroNo;
+
+        primeiroNo=aux->proximo;
+        aux->proximo=NULL;
+
+    }else{
+        percorre = primeiroNo;
+        while(percorre->proximo!=NULL&&percorre->proximo->vertice!=v){
+            percorre=percorre->proximo;
         }
-    }
-    return NULL;
+        if(percorre->proximo!=NULL&&percorre->proximo->vertice==v){
+
+            aux=percorre->proximo;
+
+            percorre->proximo=aux->proximo;
+            aux->proximo=NULL;
+
+            ultimoNo->proximo=aux;
+            ultimoNo=aux;
+
+            retorno=primeiroNo->vertice;
+        }
+     }
+    return retorno;
 }
 
 void Tabu::imprimeVertices(){

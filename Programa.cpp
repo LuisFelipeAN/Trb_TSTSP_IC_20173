@@ -214,7 +214,15 @@ void inicializa(FILE* arquivo){
     solucao = NULL;
 
 };
+void buscaLocal(){
+    Vertice* aux2;
+    for(No* aux = solucao; aux!=NULL;aux=aux->proximo){
 
+        aux2=tabus[aux->vertice->getIndiceTabu()].outroVertice(aux->vertice);
+        if(aux2!=NULL)
+            fprintf(stdout,"anterior: %d   novo: %d  tabu: %d\n",aux->vertice->getIDVertice(),aux2->getIDVertice(),aux->vertice->getIndiceTabu());
+    }
+}
 void desalocaMemoria(){
     ///Desaloca a lista encadeada de vertices
     ponteiro=primeiro;

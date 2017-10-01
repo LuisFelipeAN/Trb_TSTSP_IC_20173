@@ -7,6 +7,7 @@ Tabu::Tabu()
     visitado=false;
     numVertices=0;
 }
+///insere os Nos ordenados na lista encadeada
 void Tabu::insereVertice(Vertice* v){
     NoTabu *novo = new NoTabu();
     novo->vertice=v;
@@ -29,12 +30,14 @@ Vertice* Tabu::outroVertice(Vertice *v){
     }
     return NULL;
 }
+
 void Tabu::imprimeVertices(){
     for(NoTabu *aux = primeiroNo;aux!=NULL;aux=aux->proximo){
             fprintf(stdout," %d",aux->vertice->getIDVertice());
     }
 
 }
+///retorna um vertice randomico do tabu
 Vertice* Tabu::getRandom(){
     int vRand = rand() % numVertices;
     NoTabu* aux=primeiroNo;

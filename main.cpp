@@ -24,11 +24,14 @@ int main(int argc, char** args)
     inicializa(arquivo);
     construtivo();
     imprimeVerificacaoViabilidade();
-    imprimeTabus();
+    //imprimeTabus();
     fprintf(stdout,"Custo da Solucao: %d\n",calculaCustoSolucao());
     imprimeSolucao();
     buscaLocal();
-    imprimeTabus();
+    //imprimeTabus();
+    imprimeVerificacaoViabilidade();
+    imprimeSolucao();
+    fprintf(stdout,"Custo da Solucao: %d\n",calculaCustoSolucao());
 
     return 0;
 }

@@ -215,12 +215,75 @@ void inicializa(FILE* arquivo){
 
 };
 void buscaLocal(){
-    Vertice* aux2;
-    for(No* aux = solucao; aux!=NULL;aux=aux->proximo){
+    Vertice* candidato;
+     Vertice* bkp;
+    double custoAtual = calculaCustoSolucao();
+    int novoCusto;
+    double distanciaAnterior;
+    double distanciaNovoVertice;
+    No * ultimo=solucao;
+    No * anterior;
+    while(ultimo->proximo!=NULL){///encontra o ultimo No da solucao;
+        ultimo=ultimo->proximo;
+    }
+    No* aux= solucao;
+    anterior=ultimo;
+   while(aux->proximo!=NULL){
+        if(aux==solucao){
+            candidato=aux->tabu->outroVertice(aux->vertice);
+            if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
+                bkp=aux->vertice;
+                aux->vertice=candidato;
+                novoCusto=calculaCustoSolucao();
+                if(novoCusto<custoAtual){
+                        fprintf(stdout,"Trocou 1\n");
+                        custoAtual=novoCusto;
+                        aux=solucao;
+                }else{
+                    aux->vertice=bkp;
+                    aux=aux->proximo;
+                 }
+            }else{
+                aux=aux->proximo;
+             }
+        }else if(aux==ultimo){
 
-        aux2=tabus[aux->vertice->getIndiceTabu()].outroVertice(aux->vertice);
-        if(aux2!=NULL)
-            fprintf(stdout,"anterior: %d   novo: %d  tabu: %d\n",aux->vertice->getIDVertice(),aux2->getIDVertice(),aux->vertice->getIndiceTabu());
+                candidato=aux->tabu->outroVertice(aux->vertice);
+                if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
+                    bkp=aux->vertice;
+                    aux->vertice=candidato;
+                    novoCusto=calculaCustoSolucao();
+                    if(novoCusto<custoAtual){
+                        fprintf(stdout,"Trocou 2\n");
+                        custoAtual=novoCusto;
+                        aux=solucao;
+                     }else{
+                        aux->vertice=bkp;
+                        aux=aux->proximo;
+                      }
+                }else{
+                    aux=aux->proximo;
+                 }
+               }else{
+                    candidato=aux->tabu->outroVertice(aux->vertice);
+                    if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
+                        bkp=aux->vertice;
+                        aux->vertice=candidato;
+                        novoCusto=calculaCustoSolucao();
+                        if(novoCusto<custoAtual){
+                            fprintf(stdout,"Trocou 3\n");
+                            custoAtual=novoCusto;
+                            aux=solucao;
+
+                        }else{
+                            aux->vertice=bkp;
+                            aux=aux->proximo;
+                         }
+                    }else{
+                        aux=aux->proximo;
+                     }
+                }
+             anterior=aux;
     }
 }
 void desalocaMemoria(){

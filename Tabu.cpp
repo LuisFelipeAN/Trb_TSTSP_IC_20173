@@ -37,7 +37,7 @@ Vertice* Tabu::outroVertice(Vertice *v){
         primeiroNo=aux->proximo;
         aux->proximo=NULL;
 
-    }else{
+    }else if(primeiroNo->proximo!=NULL){
         percorre = primeiroNo;
         while(percorre->proximo!=NULL&&percorre->proximo->vertice!=v){
             percorre=percorre->proximo;
@@ -53,8 +53,12 @@ Vertice* Tabu::outroVertice(Vertice *v){
             ultimoNo=aux;
 
             retorno=primeiroNo->vertice;
-        }
-     }
+        }else if(percorre->proximo==NULL){
+                    retorno=ultimoNo->vertice;
+               }
+     }else{
+        retorno=primeiroNo->vertice;
+      }
     return retorno;
 }
 

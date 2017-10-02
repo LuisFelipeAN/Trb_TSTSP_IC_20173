@@ -215,75 +215,72 @@ void inicializa(FILE* arquivo){
 
 };
 void buscaLocal(){
-    Vertice* candidato;
-     Vertice* bkp;
-    double custoAtual = calculaCustoSolucao();
-    int novoCusto;
-    double distanciaAnterior;
-    double distanciaNovoVertice;
+    Vertice* candidato; ///vertice candidado a ser o substitudo na solução
+     Vertice* bkp; ///armazena o vertice que foi alterado na solução
+    int custoAtual = calculaCustoSolucao();///armazena o custo atual da solução
+    int novoCusto;///armazena o custo da nova soluçã
     No * ultimo=solucao;
     No * anterior;
     while(ultimo->proximo!=NULL){///encontra o ultimo No da solucao;
         ultimo=ultimo->proximo;
     }
     No* aux= solucao;
-    anterior=ultimo;
-   while(aux->proximo!=NULL){
-        if(aux==solucao){
+    anterior=ultimo;/// o anterior do primeiro do da solucao é o ultimo; usada para garantir que a substituição é válida
+    while(aux!=NULL){
+        if(aux==solucao){///tenta alterar o primeiro elemento da solução
             candidato=aux->tabu->outroVertice(aux->vertice);
+            ///Garante a viabilidade da alteração
             if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
                 bkp=aux->vertice;
                 aux->vertice=candidato;
                 novoCusto=calculaCustoSolucao();
-                if(novoCusto<custoAtual){
-                        fprintf(stdout,"Trocou 1\n");
+                if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solução
                         custoAtual=novoCusto;
-                        aux=solucao;
-                }else{
+                        aux=solucao;///Reinicia a busca local com a nova solução
+                }else{///Se não ocorreu melhora desfaz a alteração na solução
                     aux->vertice=bkp;
                     aux=aux->proximo;
                  }
             }else{
                 aux=aux->proximo;
              }
-        }else if(aux==ultimo){
-
+        }else if(aux==ultimo){///Tenta alterar o ultimo elemento da solução
                 candidato=aux->tabu->outroVertice(aux->vertice);
-                if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
+                ///Garante a viabilidade da alteração
+                if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==solucao->vertice->getIndiceCluster()){
                     bkp=aux->vertice;
                     aux->vertice=candidato;
                     novoCusto=calculaCustoSolucao();
-                    if(novoCusto<custoAtual){
-                        fprintf(stdout,"Trocou 2\n");
+                    if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solucao
                         custoAtual=novoCusto;
-                        aux=solucao;
-                     }else{
+                        aux=solucao;///reinicia a busca com a nova solucao
+                     }else{///Se não ocorreu melhora desfaz a alteração na solução
                         aux->vertice=bkp;
                         aux=aux->proximo;
                       }
                 }else{
                     aux=aux->proximo;
                  }
-               }else{
+               }else{///Tenta alterar um elemento do mei da solucao
                     candidato=aux->tabu->outroVertice(aux->vertice);
-                    if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
+                    ///Garante a viabilidade da alteração
+                    if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
                         bkp=aux->vertice;
                         aux->vertice=candidato;
                         novoCusto=calculaCustoSolucao();
-                        if(novoCusto<custoAtual){
-                            fprintf(stdout,"Trocou 3\n");
+                        if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solucao
                             custoAtual=novoCusto;
-                            aux=solucao;
+                            aux=solucao;///reinicia a busca com a nova solucao
 
-                        }else{
+                        }else{///Se não ocorreu melhora desfaz a alteração na solução
                             aux->vertice=bkp;
                             aux=aux->proximo;
                          }
-                    }else{
+                    }else{///vai para o proximo elemento da solução
                         aux=aux->proximo;
                      }
                 }
-             anterior=aux;
+             anterior=aux;///atualiza o elemento anterior
     }
 }
 void desalocaMemoria(){

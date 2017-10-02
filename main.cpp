@@ -17,21 +17,17 @@ int main(int argc, char** args)
                 srand(atoi(args[1]));
 
             }else if(argc > 3){
-                     fprintf(stderr, "Argumento invalido!");
+                     fprintf(stderr, "Argumento invalido exemplo de uso:\n");
+                     fprintf(stderr, "nomeExecutavel nomeArquivo semente\n");
+                     fprintf(stderr, "nomeExecutavel semente < arquivo  \n");
                       exit(1);
                   }
 
     inicializa(arquivo);
     construtivo();
-    imprimeVerificacaoViabilidade();
-    //imprimeTabus();
-    fprintf(stdout,"Custo da Solucao: %d\n",calculaCustoSolucao());
-    imprimeSolucao();
+    fprintf(stdout,"Custo da Solucao Antes da Busca Local: %d\n",calculaCustoSolucao());
     buscaLocal();
-    //imprimeTabus();
-    imprimeVerificacaoViabilidade();
-    imprimeSolucao();
-    fprintf(stdout,"Custo da Solucao: %d\n",calculaCustoSolucao());
+    fprintf(stdout,"Custo da Solucao Depois da Busca Local: %d\n",calculaCustoSolucao());
 
     return 0;
 }

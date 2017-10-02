@@ -2,40 +2,36 @@
 #include "Vertice.h"
 #include "Tabu.h"
 
+///estrutura para encadear os vertices presentes na solucao
 struct No{
     No *proximo;
     Tabu* tabu;
     Vertice* vertice;
 };
 
-//verto de tabus do problema
+///vertor de tabus do problema
 static Tabu* tabus;
 
-//variaveis para a quantidade de tabus,vertices e clusters do problema
+///variaveis para a quantidade de tabus,vertices e clusters do problema
 static int numTotalTabus;
 static int numTotalClusters;
 static int numTotalVertices;
 
-//Ponteiro para a estrutura de ar
+///Ponteiro para a lista encadeada de vertices
 static Vertice *primeiro;
 static Vertice *ponteiro;
 
-//ponteiro para a lista encadeada de vertices da solucao
+///ponteiro para a lista encadeada de vertices da solucao
 static No* solucao;
-
-//ponteiros para calcular o inicio e o fim da interacao em um cluster
-static No* inicio,fim;
 
 ///calcula o custo da solucao
 int calculaCustoSolucao(){
 
     double somaCusto=0;
     No * aux ;
-    int i=0;
     if(solucao!=NULL){
         for(aux = solucao; aux->proximo!=NULL;aux=aux->proximo){
                 somaCusto+=aux->vertice->calculaCusto(aux->proximo->vertice);
-                i++;
         }
         ///calcula a distancia do penultimo ao ultimo
         somaCusto+=aux->vertice->calculaCusto(aux->vertice);
@@ -63,7 +59,7 @@ void calculaInsercao(Vertice *v){
      novo->proximo=NULL;
      novo->tabu=&tabus[v->getIndiceTabu()];
 
-     double custoMinimo = 9999999.999;
+     double custoMinimo = 9999999;
      bool controleInsecaoIntraClusters=false;
      double custo=0;
      No *noAtual;
@@ -180,9 +176,9 @@ void imprimeVerificacaoViabilidade(){
         fprintf(stdout,"Vertice: %d \tTabu: %d\t Cluster:%d\n",aux->vertice->getIDVertice(),aux->vertice->getIndiceTabu()+1,aux->vertice->getIndiceCluster());
     }
 }
+///efetua a leitura do fluxo passado como parametro
 void inicializa(FILE* arquivo){
-    ///Efetua a leitura do cabeçalho da instancia
-    char palavra[30];
+
     fscanf(arquivo,"%d %d %d",&numTotalVertices,&numTotalClusters,&numTotalTabus);
     ///Aloca o vetor de Tabus
     tabus= new Tabu[numTotalTabus];
@@ -230,7 +226,7 @@ void buscaLocal(){
         if(aux==solucao){///tenta alterar o primeiro elemento da solução
             candidato=aux->tabu->outroVertice(aux->vertice);
             ///Garante a viabilidade da alteração
-            if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
+            if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
                 bkp=aux->vertice;
                 aux->vertice=candidato;
                 novoCusto=calculaCustoSolucao();
@@ -247,7 +243,7 @@ void buscaLocal(){
         }else if(aux==ultimo){///Tenta alterar o ultimo elemento da solução
                 candidato=aux->tabu->outroVertice(aux->vertice);
                 ///Garante a viabilidade da alteração
-                if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==solucao->vertice->getIndiceCluster()){
+                if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==solucao->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
                     bkp=aux->vertice;
                     aux->vertice=candidato;
                     novoCusto=calculaCustoSolucao();
@@ -264,7 +260,7 @@ void buscaLocal(){
                }else{///Tenta alterar um elemento do mei da solucao
                     candidato=aux->tabu->outroVertice(aux->vertice);
                     ///Garante a viabilidade da alteração
-                    if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()){
+                    if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
                         bkp=aux->vertice;
                         aux->vertice=candidato;
                         novoCusto=calculaCustoSolucao();

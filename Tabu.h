@@ -1,11 +1,12 @@
 #ifndef TABU_H
 #define TABU_H
 #include "Vertice.h"
-
+///estrutura para encadear os vertices presentes no tabu
 struct NoTabu{
     NoTabu* proximo;
     Vertice* vertice;
 };
+
 class Tabu
 {
     public:

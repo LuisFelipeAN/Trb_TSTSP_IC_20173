@@ -1,13 +1,8 @@
 #include "Programa.h"
 #include "Vertice.h"
-#include "Tabu.h"
 
-///estrutura para encadear os vertices presentes na solucao
-struct No{
-    No *proximo;
-    Tabu* tabu;
-    Vertice* vertice;
-};
+
+
 
 ///vertor de tabus do problema
 static Tabu* tabus;
@@ -21,11 +16,10 @@ static int numTotalVertices;
 static Vertice *primeiro;
 static Vertice *ponteiro;
 
-///ponteiro para a lista encadeada de vertices da solucao
-static No* solucao;
+static FILE* arqSaida;
 
 ///calcula o custo da solucao
-int calculaCustoSolucao(){
+int calculaCustoSolucao(No* solucao){
 
     double somaCusto=0;
     No * aux ;
@@ -43,15 +37,15 @@ int calculaCustoSolucao(){
     return floor(somaCusto);
 }
 
-void imprimeSolucao(){
-     fprintf(stdout,"Rota -> ");
+void imprimeSolucao(No* solucao){
+     fprintf(arqSaida,"Rota -> ");
      for(No* aux = solucao; aux!=NULL;aux=aux->proximo){
-            fprintf(stdout,"%d ", aux->vertice->getIDVertice());
+            fprintf(arqSaida,"%d ", aux->vertice->getIDVertice());
     }
-    fprintf(stdout,"\n");
+    fprintf(arqSaida,"\n");
 }
 ///Funcao calcula aondo o novo Vertice sera inserido na lista de solucao
-void calculaInsercao(Vertice *v){
+void calculaInsercao(No* solucao,Vertice *v){
      No *anterior;
      No *novo = new No();
 
@@ -97,9 +91,9 @@ void calculaInsercao(Vertice *v){
         noAtual->proximo= novo;
      }
 }
-void construtivo(){
+No* construtivo(){
     int numTabusVisitados = 0;
-
+    No *solucao;
     ///inicia a solucao com vertices aleatorios de 3 tabus aleatorios
     solucao = new No();
     int indiceTabu = rand() % numTotalTabus;
@@ -155,31 +149,36 @@ void construtivo(){
             if(!tabus[ponteiro->getIndiceTabu()].visitado){ ///verifica se o tabu do vertice atual nao foi visitado
                 tabus[ponteiro->getIndiceTabu()].visitado=true; /// marca o tabu como visitado para garantir as restricoes do problema
                 numTabusVisitados++;
-                calculaInsercao(ponteiro);
+                calculaInsercao(solucao,ponteiro);
             }
         }
     }
+    for(int i=0;i<numTotalTabus;i++){
+        tabus[i].visitado=false;
+    }
+    return solucao;
 }
 ///percorre o vetor de tabus imprimindo os seus respectivos vertices
-void imprimeTabus(){
-    fprintf(stdout,"Tabus e seus Vertices:\n");
+void imprimeTabus(No* solucao){
+    fprintf(arqSaida,"Tabus e seus Vertices:\n");
     for(int i=0;i<numTotalTabus;i++){
-      fprintf(stdout,"T:%d ->",i+1);
-      tabus[i].imprimeVertices();
-      fprintf(stdout,"\n");
+      fprintf(arqSaida,"T:%d ->",i+1);
+      tabus[i].imprimeVertices(arqSaida);
+      fprintf(arqSaida,"\n");
     }
 }
  ///imprime os ids dos vertices seus tabus e clusters
-void imprimeVerificacaoViabilidade(){
-    fprintf(stdout,"Solucao com tabus e clusters:\n");
+void imprimeVerificacaoViabilidade(No* solucao){
+    fprintf(arqSaida,"Solucao com tabus e clusters:\n");
     for(No * aux = solucao; aux!=NULL;aux=aux->proximo){
-        fprintf(stdout,"Vertice: %d \tTabu: %d\t Cluster:%d\n",aux->vertice->getIDVertice(),aux->vertice->getIndiceTabu()+1,aux->vertice->getIndiceCluster());
+        fprintf(arqSaida,"Vertice: %d \tTabu: %d\t Cluster:%d\n",aux->vertice->getIDVertice(),aux->vertice->getIndiceTabu()+1,aux->vertice->getIndiceCluster());
     }
 }
 ///efetua a leitura do fluxo passado como parametro
-void inicializa(FILE* arquivo){
+void inicializa(FILE* arquivoEntrada, FILE* arquivoSaida){
+    arqSaida=arquivoSaida;
 
-    fscanf(arquivo,"%d %d %d",&numTotalVertices,&numTotalClusters,&numTotalTabus);
+    fscanf(arquivoEntrada,"%d %d %d",&numTotalVertices,&numTotalClusters,&numTotalTabus);
     ///Aloca o vetor de Tabus
     tabus= new Tabu[numTotalTabus];
 
@@ -187,7 +186,7 @@ void inicializa(FILE* arquivo){
     int id,cont=0,idT,idC;
 
     ///cria o primeiro vertice
-    fscanf(arquivo, "%d\t%lf\t%lf\t%d\t%d\n",&id,&x,&y,&idC,&idT);
+    fscanf(arquivoEntrada, "%d\t%lf\t%lf\t%d\t%d\n",&id,&x,&y,&idC,&idT);
     ///Converte o tabus para a forma de represetnacao
     idT=idT-1;
     Vertice* inicial = new Vertice(id,x,y,idC,idT);
@@ -198,7 +197,7 @@ void inicializa(FILE* arquivo){
 
     ///encadeia os demais vertices
     while(cont<numTotalVertices-1){
-        fscanf(arquivo, "%d\t%lf\t%lf\t%d\t%d\n",&id,&x,&y,&idC,&idT);
+        fscanf(arquivoEntrada, "%d\t%lf\t%lf\t%d\t%d\n",&id,&x,&y,&idC,&idT);
         idT=idT-1;
         Vertice* aux = new Vertice(id,x,y,idC,idT);
         tabus[idT].insereVertice(aux);
@@ -206,14 +205,13 @@ void inicializa(FILE* arquivo){
         ponteiro = aux;
         cont++;
     }
-    fclose(arquivo);
-    solucao = NULL;
+    fclose(arquivoEntrada);
 
 };
-void buscaLocal(){
+void buscaLocal(No* solucao){
     Vertice* candidato; ///vertice candidado a ser o substitudo na solução
-     Vertice* bkp; ///armazena o vertice que foi alterado na solução
-    int custoAtual = calculaCustoSolucao();///armazena o custo atual da solução
+    Vertice* bkp; ///armazena o vertice que foi alterado na solução
+    int custoAtual = calculaCustoSolucao(solucao);///armazena o custo atual da solução
     int novoCusto;///armazena o custo da nova soluçã
     No * ultimo=solucao;
     No * anterior;
@@ -229,7 +227,7 @@ void buscaLocal(){
             if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
                 bkp=aux->vertice;
                 aux->vertice=candidato;
-                novoCusto=calculaCustoSolucao();
+                novoCusto=calculaCustoSolucao(solucao);
                 if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solução
                         custoAtual=novoCusto;
                         aux=solucao;///Reinicia a busca local com a nova solução
@@ -246,7 +244,7 @@ void buscaLocal(){
                 if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==solucao->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
                     bkp=aux->vertice;
                     aux->vertice=candidato;
-                    novoCusto=calculaCustoSolucao();
+                    novoCusto=calculaCustoSolucao(solucao);
                     if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solucao
                         custoAtual=novoCusto;
                         aux=solucao;///reinicia a busca com a nova solucao
@@ -263,7 +261,7 @@ void buscaLocal(){
                     if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
                         bkp=aux->vertice;
                         aux->vertice=candidato;
-                        novoCusto=calculaCustoSolucao();
+                        novoCusto=calculaCustoSolucao(solucao);
                         if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solucao
                             custoAtual=novoCusto;
                             aux=solucao;///reinicia a busca com a nova solucao
@@ -279,7 +277,30 @@ void buscaLocal(){
              anterior=aux;///atualiza o elemento anterior
     }
 }
-void desalocaMemoria(){
+void salvarSolucao(No* solucao){
+    Vertice *v;
+    for(No *aux=solucao;aux!=NULL;aux=aux->proximo){
+        v=aux->vertice;
+        fprintf(arqSaida,"%lf\t%lf\t%d\t%d\n",v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu());
+    }
+    v=solucao->vertice;
+    fprintf(arqSaida,"%lf\t%lf\t%d\t%d\n",v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu());
+}
+void desalocaSolucao(No* solucao){
+   No* aux;
+    if(solucao!=NULL){
+        aux=solucao->proximo;
+        delete solucao;
+        while(aux!=NULL){
+            solucao = aux;
+            aux = aux->proximo;
+            delete solucao;
+        }
+        solucao=NULL;
+    }
+
+}
+void desalocaMemoria(No* solucao){
     ///Desaloca a lista encadeada de vertices
     ponteiro=primeiro;
     while(ponteiro!=NULL){

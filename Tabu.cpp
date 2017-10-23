@@ -29,15 +29,20 @@ Vertice* Tabu::outroVertice(Vertice *v){
     NoTabu* percorre;
     if(primeiroNo->vertice==v&&primeiroNo->proximo!=NULL){///retorna o segundo vertice da lista encadeada
 
-        retorno=primeiroNo->proximo->vertice;
-        aux=primeiroNo;
+        retorno=primeiroNo->vertice;
 
         ultimoNo->proximo=primeiroNo;
 
-        primeiroNo=aux->proximo;
-        aux->proximo=NULL;
+        ultimoNo=primeiroNo;
 
-    }else if(primeiroNo->proximo!=NULL){
+        primeiroNo=primeiroNo->proximo;
+
+        ultimoNo->proximo=NULL;
+
+
+
+
+    }else if(primeiroNo->proximo!=NULL&&ultimoNo->vertice!=v){
         retorno=primeiroNo->vertice;
         percorre = primeiroNo;
 
@@ -46,27 +51,28 @@ Vertice* Tabu::outroVertice(Vertice *v){
         }
         if(percorre->proximo!=NULL&&percorre->proximo->vertice==v){
             ///insere o no do vertice procurado no final da lista encadeada
-            aux=percorre->proximo;
 
-            percorre->proximo=aux->proximo;
-            aux->proximo=NULL;
+            ultimoNo->proximo=percorre->proximo;
+            ultimoNo=percorre->proximo;
+            percorre->proximo=percorre->proximo->proximo;
+            ultimoNo->proximo=NULL;
 
-            ultimoNo->proximo=aux;
-            ultimoNo=aux;
 
         }
+
      }
     return retorno;
 }
 
-void Tabu::imprimeVertices(){
+void Tabu::imprimeVertices(FILE* arquivo){
     for(NoTabu *aux = primeiroNo;aux!=NULL;aux=aux->proximo){
-            fprintf(stdout," %d",aux->vertice->getIDVertice());
+            fprintf(arquivo," %d",aux->vertice->getIDVertice());
     }
 
 }
 ///retorna um vertice randomico do tabu
 Vertice* Tabu::getRandom(){
+
     int vRand = rand() % numVertices;
     NoTabu* aux=primeiroNo;
     for(int i=0;i<vRand;i++){

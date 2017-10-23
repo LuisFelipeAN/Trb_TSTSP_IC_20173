@@ -14,7 +14,7 @@ class Tabu
         void insereVertice(Vertice *v);
         Vertice *outroVertice(Vertice *v);
         Vertice *getRandom();
-        void imprimeVertices();
+        void imprimeVertices(FILE* arquivo);
         Tabu();
         virtual ~Tabu();
 

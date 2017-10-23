@@ -3,23 +3,32 @@
 #include <fstream>
 #include <string.h>
 #include <stdio.h>
+#include "Tabu.h"
 using namespace std;
 
+///estrutura para encadear os vertices presentes na solucao
+typedef struct No{
+    No *proximo;
+    Tabu* tabu;
+    Vertice* vertice;
+} No;
+void inicializa(FILE* arquivoEntrada,FILE* arquivoSaida);
 
-void inicializa(FILE* arquivo);
+No* construtivo();
 
-void construtivo();
+void imprimeSolucao(No* solucao);
 
-void imprimeSolucao();
+void imprimeTabus(No* solucao);
 
-void imprimeTabus();
+void imprimeVerificacaoViabilidade(No* solucao);
 
-void imprimeVerificacaoViabilidade();
+void buscaLocal(No* solucao);
 
-void buscaLocal();
+int calculaCustoSolucao(No* solucao);
 
-int calculaCustoSolucao();
+void desalocaMemoria(No* solucao);
 
-void desalocaMemoria();
+void desalocaSolucao(No* solucao);
 
+void salvarSolucao(No* solucao);
 #endif // PROGRAMA_H_INCLUDED

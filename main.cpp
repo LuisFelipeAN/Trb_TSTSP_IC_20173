@@ -43,9 +43,9 @@ int main(int argc, char** args)
     ultimaSolucao->proxima = NULL;
     ultimaSolucao->solucao = construtivo();
 
-    int minimo=99999999;
-    No* melhorSolucao;
-    for(int i=0;i<1;i++){
+    //int minimo=99999999;
+    No* melhorSolucao=construtivo();
+    /*for(int i=0;i<1;i++){
         No* solucao = construtivo();
         NoSolucao* nova = new NoSolucao();
         nova->proxima=ultimaSolucao;
@@ -53,21 +53,31 @@ int main(int argc, char** args)
         ultimaSolucao=nova;
 
         //imprimeSolucao(solucao);
-        buscaLocal(solucao);
+        //buscaLocal(solucao);
         int custo = calculaCustoSolucao(solucao);
         if(custo<minimo){
             minimo=custo;
             melhorSolucao=solucao;
         }
-    }
+    }*/
     salvarSolucao(melhorSolucao);
-    imprimeSolucao(melhorSolucao);
-    buscaLocal2(melhorSolucao);
-    /*imprimeSolucao(melhorSolucao);
-     salvarSolucao(melhorSolucao);
-     buscaLocal2(melhorSolucao);*/
-    imprimeSolucao(melhorSolucao);
-
+    int custoAtual = calculaCustoSolucao(melhorSolucao);
+    int numMaxSemMelhoras=7;
+    int contaInteracoesSemMelhora=0;
+    int controle=0;
+        while(controle!=3&&contaInteracoesSemMelhora<numMaxSemMelhoras){
+            if(controle==0) buscaLocal2(melhorSolucao);
+            if(controle==1) buscaLocal(melhorSolucao);
+            int custo = calculaCustoSolucao(melhorSolucao);
+            if (custo< custoAtual){
+                custoAtual=custo;
+                controle=rand()%2;
+                contaInteracoesSemMelhora=0;
+            }else{
+                contaInteracoesSemMelhora++;
+                controle=rand()%2;
+            }
+        }
     salvarSolucao(melhorSolucao);
 
     NoSolucao* aux;
@@ -82,9 +92,6 @@ int main(int argc, char** args)
         }
         ultimaSolucao=NULL;
     }
-
-
-    fprintf(stdout,"Menor Custo: %d",minimo);
     desalocaMemoria(NULL);
     fclose(arquivoSaida);
     return 0;

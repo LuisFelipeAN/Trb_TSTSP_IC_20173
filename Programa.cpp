@@ -1,11 +1,5 @@
 #include "Programa.h"
 #include "Vertice.h"
-struct Cluster{
-    No* inicio;
-    No* fim;
-    Cluster* proximo;
-};
-
 
 
 ///vertor de tabus do problema
@@ -213,8 +207,7 @@ void inicializa(FILE* arquivoEntrada, FILE* arquivoSaida){
 
 };
 void trocaClusters(Cluster *c1,Cluster *c2){
-
-    fprintf(stdout,"Trocar: ca: %d por cp: %d\n",c1->fim->vertice->getIndiceCluster(),c2->fim->vertice->getIndiceCluster());
+   // fprintf(stdout,"Trocar: ca: %d por cp: %d\n",c1->fim->vertice->getIndiceCluster(),c2->fim->vertice->getIndiceCluster());
    if(c1->fim!=c2->inicio&&c1->inicio!=c2->fim){///verifica se os clusters nao sao adjacentes
         ///ponteiros que delimitam os clusters
         No *i1= c1->inicio;
@@ -232,6 +225,12 @@ void trocaClusters(Cluster *c1,Cluster *c2){
         f1->proximo=f2->proximo;
         f2->proximo=aux;
 
+        ///atualiza o inicio o e final dos clusters
+        /*c2->inicio=i1;
+        c1->inicio=i2;
+
+        c2->fim=f1;
+        c1->fim=f2;*/
         ///troca a posicao dos dois cluster na lista
         Cluster *caux =c1;
         c1=c2;
@@ -263,15 +262,15 @@ void trocaClusters(Cluster *c1,Cluster *c2){
             c1=c2;
             c2=caux;
 
-            fprintf(stdout,"c1: ca: %d por cp: %d\n",c1->inicio->vertice->getIDVertice(),c1->fim->vertice->getIDVertice());
-            fprintf(stdout,"c2: ca: %d por cp: %d\n",c2->inicio->vertice->getIDVertice(),c2->fim->vertice->getIDVertice());
+            //fprintf(stdout,"c1: ca: %d por cp: %d\n",c1->inicio->vertice->getIDVertice(),c1->fim->vertice->getIDVertice());
+           // fprintf(stdout,"c2: ca: %d por cp: %d\n",c2->inicio->vertice->getIDVertice(),c2->fim->vertice->getIDVertice());
         }else{///inverte a ordem dos clusters
             trocaClusters(c2,c1);
          }
      }
 }
-
 void buscaLocal2(No* solucao){
+
     Cluster* inicial = NULL;
     int controle=1;
     int idClusterAtual=-1;
@@ -314,47 +313,28 @@ void buscaLocal2(No* solucao){
     }
     inicial->fim=ultimo;
 
-    if(inicial->fim->vertice->getIndiceCluster()==solucao->vertice->getIndiceCluster()){
-        Cluster *c;
-        Cluster *cAnt;
-        for(c=inicial;c->proximo!=NULL;c=c->proximo){
-            cAnt=c;
-        }
-        inicial->fim=c->fim;
-        cAnt->proximo=NULL;
-        delete c;
-    }
+    Cluster *c;
+    for(c=inicial;c->proximo!=NULL;c=c->proximo);
+    c->inicio=inicial->inicio;
 
-
-    for(Cluster* c = inicial;c!=NULL;c=c->proximo){
+    /*for(Cluster* c = inicial;c!=NULL;c=c->proximo){
         fprintf(stdout,"c: %d\n vi:%d\tvf:%d\n",c->fim->vertice->getIndiceCluster(),c->inicio->vertice->getIDVertice(),c->fim->vertice->getIDVertice());
-    }
+    }*/
 
     int custoAtual = calculaCustoSolucao(solucao);
-    /*for(Cluster* c = inicial;c->proximo!=NULL;c=c->proximo){
-       trocaClusters(c,c->proximo);
-
-       int custo = calculaCustoSolucao(solucao);
-       if (custo< custoAtual){
-            c=inicial;
-            custoAtual=custo;
-       }else{
-            trocaClusters(c->proximo,c);
-       }
-
-    }*/
-    trocaClusters(inicial->proximo->proximo,inicial);
-    trocaClusters(inicial,inicial->proximo->proximo->proximo->proximo->proximo->proximo->proximo);
-    trocaClusters(inicial->proximo->proximo->proximo->proximo->proximo->proximo->proximo,inicial->proximo->proximo);
-    trocaClusters(inicial->proximo,inicial);
-     trocaClusters(inicial,inicial->proximo->proximo);
-     //salvarSolucao(solucao);
-    trocaClusters(inicial,inicial->proximo);
-    trocaClusters(inicial,inicial->proximo);
-      trocaClusters(inicial,inicial->proximo);
-     trocaClusters(inicial->proximo->proximo,inicial->proximo);
-     trocaClusters(inicial->proximo,inicial->proximo->proximo);
-    trocaClusters(inicial,inicial->proximo);
+    Cluster *c1=inicial;
+    while(c1!=NULL&&c1->proximo!=NULL){
+            Cluster *c2=c1->proximo;
+            trocaClusters(c1,c2);
+            int custo = calculaCustoSolucao(solucao);
+            if (custo< custoAtual){
+                custoAtual=custo;
+                c1=inicial;
+            }else{
+                trocaClusters(c2,c1);
+                c1=c1->proximo->proximo;
+            }
+    }
 }
 void buscaLocal(No* solucao){
     Vertice* candidato; ///vertice candidado a ser o substitudo na solução

@@ -12,6 +12,13 @@ typedef struct No{
     Tabu* tabu;
     Vertice* vertice;
 } No;
+
+typedef struct Cluster{
+    No*inicio;
+    No*fim;
+    Cluster* proximo;
+}Cluster;
+
 void inicializa(FILE* arquivoEntrada,FILE* arquivoSaida);
 
 No* construtivo();
@@ -23,7 +30,6 @@ void imprimeTabus(No* solucao);
 void imprimeVerificacaoViabilidade(No* solucao);
 void buscaLocal2(No* solucao);
 void buscaLocal(No* solucao);
-
 int calculaCustoSolucao(No* solucao);
 
 void desalocaMemoria(No* solucao);

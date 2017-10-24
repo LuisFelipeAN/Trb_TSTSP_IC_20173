@@ -21,7 +21,7 @@ void imprimeSolucao(No* solucao);
 void imprimeTabus(No* solucao);
 
 void imprimeVerificacaoViabilidade(No* solucao);
-
+void buscaLocal2(No* solucao);
 void buscaLocal(No* solucao);
 
 int calculaCustoSolucao(No* solucao);

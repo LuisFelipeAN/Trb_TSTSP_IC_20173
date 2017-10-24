@@ -31,8 +31,9 @@ int main(int argc, char** args)
 
             }else if(argc > 3){
                      fprintf(stderr, "Argumento invalido exemplo de uso:\n");
-                     fprintf(stderr, "nomeExecutavel nomeArquivo semente\n");
-                     fprintf(stderr, "nomeExecutavel semente < arquivo  \n");
+                     fprintf(stderr, "<exe> <arqEntrada> <arqSaida> <semente>\n");
+                     fprintf(stderr, "<exe> <arqEntrada> <semente> \n");
+                     fprintf(stderr, "<exe> <semente>\n");
                       exit(1);
                   }
 
@@ -44,12 +45,14 @@ int main(int argc, char** args)
 
     int minimo=99999999;
     No* melhorSolucao;
-    for(int i=0;i<1000;i++){
+    for(int i=0;i<1;i++){
         No* solucao = construtivo();
         NoSolucao* nova = new NoSolucao();
         nova->proxima=ultimaSolucao;
         nova->solucao=solucao;
         ultimaSolucao=nova;
+
+        //imprimeSolucao(solucao);
         buscaLocal(solucao);
         int custo = calculaCustoSolucao(solucao);
         if(custo<minimo){
@@ -57,6 +60,14 @@ int main(int argc, char** args)
             melhorSolucao=solucao;
         }
     }
+    salvarSolucao(melhorSolucao);
+    imprimeSolucao(melhorSolucao);
+    buscaLocal2(melhorSolucao);
+    /*imprimeSolucao(melhorSolucao);
+     salvarSolucao(melhorSolucao);
+     buscaLocal2(melhorSolucao);*/
+    imprimeSolucao(melhorSolucao);
+
     salvarSolucao(melhorSolucao);
 
     NoSolucao* aux;

@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Programa.h"
 using namespace std;
+
+///estrutura para encadear as solucoes geradas
 struct NoSolucao{
     No* solucao;
     NoSolucao *proxima;
@@ -36,82 +38,55 @@ int main(int argc, char** args)
                      fprintf(stderr, "<exe> <semente>\n");
                       exit(1);
                   }
-
+    ///inicia as variaveis do programa
     inicializa(arquivoEntrada,arquivoSaida);
+
+    ///inicia uma lista encadeada de solucoes
     NoSolucao *ultimaSolucao;
     ultimaSolucao = new NoSolucao();
     ultimaSolucao->proxima = NULL;
-    ultimaSolucao->solucao = construtivo();
+    ultimaSolucao->solucao = NULL;
 
-    int minimo=99999999;
-    No* melhorSolucao;//=construtivo();
+    int minimo=99999999;///melhor de todas as solucoes
+    No* melhorSolucao;
+    for(int i=0;i<1;i++){
+        No* solucao = construtivo();///obtem uma solucao inicial
 
-    for(int i=0;i<500;i++){
-        No* solucao = construtivo();
-         //salvarSolucao(solucao);
+        ///efetua uma busca VNS na solucao atual
         int custoAtual = calculaCustoSolucao(solucao);
         int numMaxSemMelhoras=10;
-        int contaInteracoesSemMelhora=0;
         int controle=1;
-            while(controle!=4&&contaInteracoesSemMelhora<numMaxSemMelhoras){
+            while(controle!=4){
                 if(controle==0) buscaLocal(solucao);
                 if(controle==1) buscaLocal2(solucao);
                 if(controle==2) buscaLocal3(solucao);
                 int custo = calculaCustoSolucao(solucao);
                 if (custo< custoAtual){
                     custoAtual=custo;
-                    //controle=rand()%3;
                     controle=1;
-                    //fprintf(stdout,"%d\n",controle+1);
-                    contaInteracoesSemMelhora=0;
                 }else{
-                    contaInteracoesSemMelhora++;
-                    //controle=rand()%3;
-                     if(controle==0) controle=2;
+                    if(controle==0) controle=2;
                     if(controle==1) controle=0;
                     if(controle==2) controle=4;
-                    //fprintf(stdout,"%d\n",controle+1);
                 }
             }
-         //salvarSolucao(solucao);
+
+        ///adiciona a solucao atual na lista
         NoSolucao* nova = new NoSolucao();
         nova->proxima=ultimaSolucao;
         nova->solucao=solucao;
         ultimaSolucao=nova;
+
+        ///verifica se a solucao atual e melhor do que a melhor solucao encontrada
         int custo = calculaCustoSolucao(solucao);
-        if(custo<minimo){
+        if(custo<minimo){///se for melhor atualiza a melhor solucao
             minimo=custo;
             melhorSolucao=solucao;
         }
     }
-    /*salvarSolucao(melhorSolucao);
-    int custoAtual = calculaCustoSolucao(melhorSolucao);
-    int numMaxSemMelhoras=10;
-    int contaInteracoesSemMelhora=0;
-    int controle=2;
-        while(controle!=4&&contaInteracoesSemMelhora<numMaxSemMelhoras){
-            if(controle==0) buscaLocal(melhorSolucao);
-            if(controle==1) buscaLocal2(melhorSolucao);
-            if(controle==2) buscaLocal3(melhorSolucao);
-            int custo = calculaCustoSolucao(melhorSolucao);
-            if (custo< custoAtual){
-                custoAtual=custo;
-                //controle=rand()%3;
-                controle=1;
-                fprintf(stdout,"%d\n",controle+1);
-                contaInteracoesSemMelhora=0;
-            }else{
-                contaInteracoesSemMelhora++;
-                //controle=rand()%3;
-                 if(controle==0) controle=2;
-                if(controle==1) controle=0;
-                if(controle==2) controle=4;
-                fprintf(stdout,"%d\n",controle+1);
-            }
-        }*/
-   // buscaLocal2(melhorSolucao);
-    salvarSolucao(melhorSolucao);
+    salvarSolucao(melhorSolucao);///salva a melhor de todas as solucoes
 
+    ///desaloca a lista de solucoes
     NoSolucao* aux;
     if(ultimaSolucao!=NULL){
         aux=ultimaSolucao->proxima;
@@ -124,7 +99,10 @@ int main(int argc, char** args)
         }
         ultimaSolucao=NULL;
     }
+    ///desaloca os vertice es os clusters
     desalocaMemoria(NULL);
+
+    ///fecha o arquivo de saida
     fclose(arquivoSaida);
     return 0;
 }

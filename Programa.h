@@ -13,6 +13,7 @@ typedef struct No{
     Vertice* vertice;
 } No;
 
+///estrutura para encadear os clusters presentes na solucao
 typedef struct Cluster{
     No*inicio;
     No*fim;

@@ -49,7 +49,7 @@ int main(int argc, char** args)
 
     int minimo=99999999;///melhor de todas as solucoes
     No* melhorSolucao;
-    for(int i=0;i<1;i++){
+    for(int i=0;i<10;i++){
         No* solucao = construtivo();///obtem uma solucao inicial
 
         ///efetua uma busca VNS na solucao atual

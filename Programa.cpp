@@ -348,7 +348,7 @@ void buscaLocal2(No* solucao){
                     cAtual=clusterInicial->proximo;
                 }else{
                     trocaClusters(ant->proximo);
-                    cAtual=cAtual->proximo;
+                    cAtual=ant->proximo->proximo;
                 }
             }else{
                 cAtual=cAtual->proximo;
@@ -445,10 +445,10 @@ void salvarSolucao(No* solucao){
     fprintf(arqSaida,"#Rota: (idV|X|Y|idC|idT)\n");
     for(No *aux=solucao;aux!=NULL;aux=aux->proximo){
         v=aux->vertice;
-        fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu());
+        fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu()+1);
     }
     v=solucao->vertice;
-    fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu());
+    fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu()+1);
 }
 
 ///desaloca uma solucao com o ponteiro inicial dado pelo parametro solucao

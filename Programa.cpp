@@ -226,9 +226,9 @@ void buscaLocal3(No* solucao){
             int custo = calculaCustoSolucao(solucao);
             if(custo<custoAtual){
                 custoAtual=custo;
-                noAnt=ultimo;
-                noAtual=solucao;
-
+                noAnt=solucao;
+                noAtual=solucao->proximo;
+                noProx=solucao->proximo->proximo;
             }else{
                 noProx->proximo=noAtual->proximo;
                 noAtual->proximo=noAnt->proximo;
@@ -281,6 +281,130 @@ void trocaClusters(Cluster *cAtual){
 
 }
 
+bool inverteOrdemVisita(Cluster *cAtual){
+    No* ant= cAtual->inicio;
+    No* prox= cAtual->inicio->proximo;
+    if(prox->vertice->getIndiceCluster()!=ant->vertice->getIndiceCluster()){
+        return false;
+    }
+    while(ant!=cAtual->fim){
+        No* aux=prox->proximo;
+        prox->proximo=ant;
+        ant=prox;
+        prox=aux;
+    }
+    No* aux=cAtual->inicio;
+    cAtual->inicio=cAtual->fim;
+    cAtual->fim=aux;
+    return true;
+
+}
+
+bool inverteOrdemVisita(Cluster *cInicial,Cluster *cAtual,Cluster *cAnterior,Cluster *cProximo){
+    int custoAtual = calculaCustoSolucao(cInicial->inicio);
+
+    if(inverteOrdemVisita(cAtual)){
+        cAtual->fim->proximo=cProximo->inicio;
+        cAnterior->fim->proximo=cAtual->inicio;
+        int novoCusto=calculaCustoSolucao(cInicial->inicio);
+        if(novoCusto<custoAtual){
+            return true;
+        }
+        else{
+            inverteOrdemVisita(cAtual);
+            cAtual->fim->proximo=cProximo->inicio;
+            cAnterior->fim->proximo=cAtual->inicio;
+            return false;
+        }
+    }
+    return false;
+}
+
+///Efetua uma busca local trocando clusters adjacentes baseado em uma lista duplamente encadeada de clusters
+void buscaLocal4(No* solucao){
+
+    Cluster* clusterFinal = NULL;///ultimo cluster da solucao
+    int controle=1;
+    int idClusterAtual=-1;
+
+    No* ultimo=solucao;
+    while(ultimo->proximo!=NULL){///encontra o ultimo No da solucao;
+        ultimo=ultimo->proximo;
+    }
+    No* aux = solucao;
+    No* anterior=solucao;
+
+    ///Cria uma lista de clusters e encadeia pelos anteriores
+    while(aux!=NULL){
+        if(aux->vertice->getIndiceCluster()!=idClusterAtual){
+            if(controle==1){
+                controle=0;
+                Cluster* no= new Cluster();
+                no->inicio=anterior;
+                no->anterior=clusterFinal;
+                clusterFinal=no;
+                idClusterAtual=aux->vertice->getIndiceCluster();
+                anterior=aux;
+                aux=aux->proximo;
+
+            }else{
+                clusterFinal->fim=anterior;
+                controle=1;
+                anterior=aux;
+                idClusterAtual=-1;
+            }
+
+        }else{
+            anterior=aux;
+            aux=aux->proximo;
+        }
+
+    }
+    clusterFinal->fim=ultimo;
+    Cluster *clusterInicial=clusterFinal;
+    Cluster *auxcc=NULL;
+
+    ///percorre a lista encadeada por anteriores ligando os proximos
+    while(clusterInicial->anterior!=NULL){
+            auxcc=clusterInicial;
+            clusterInicial=clusterInicial->anterior;
+            clusterInicial->proximo=auxcc;
+
+    }
+    clusterInicial->proximo=auxcc;
+    Cluster *ultimoAdicionado=NULL;
+
+    int custoAtual=calculaCustoSolucao(solucao);
+
+
+    Cluster* cAtual=clusterInicial->proximo;
+    Cluster* cAnt  = clusterInicial;
+    Cluster* cProx =clusterInicial->proximo->proximo;
+
+    while(cAtual!=NULL&&cProx!=NULL){///efetua a busca local a partir da lista duplamente encadeada obtida
+            if(inverteOrdemVisita(clusterInicial,cAtual,cAnt,cProx)){
+                cAtual=clusterInicial->proximo;
+                cAnt  = clusterInicial;
+                cProx =clusterInicial->proximo->proximo;
+            }else{
+                cAnt=cAtual;
+                cAtual=cAtual->proximo;
+                cProx=cProx->proximo;
+            }
+
+    }
+
+    ///desaloca a lista de clusters criada
+    Cluster *c;
+    c = clusterInicial;
+    while(c!=NULL){
+        c=c->proximo;
+        delete clusterInicial;
+        clusterInicial=c;
+    }
+    clusterInicial=NULL;
+    clusterFinal=NULL;
+}
 ///Efetua uma busca local trocando clusters adjacentes baseado em uma lista duplamente encadeada de clusters
 void buscaLocal2(No* solucao){
 
@@ -367,6 +491,29 @@ void buscaLocal2(No* solucao){
     clusterInicial=NULL;
     clusterFinal=NULL;
 }
+///Busca o vertice de menor custo dentro do tabu
+bool melhorVertice(No* anterior, No* atual, No* proximo){
+    Vertice *melhor = atual->vertice;
+    bool atualizou=false;
+    double custoAtual=anterior->vertice->calculaCusto(atual->vertice)+atual->vertice->calculaCusto(proximo->vertice);
+    Vertice *candidato=atual->vertice;
+    while(!atual->tabu->efetuouTodasTrocas()){
+        candidato = atual->tabu->outroVertice(candidato);
+        if(candidato->getIndiceCluster()==atual->vertice->getIndiceCluster()|candidato->getIndiceCluster()==proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
+            double novoCusto=anterior->vertice->calculaCusto(candidato)+candidato->calculaCusto(proximo->vertice);
+            if(novoCusto<custoAtual){
+                atualizou=true;
+                melhor=candidato;
+                custoAtual=novoCusto;
+            }
+        }
+    }
+    if(atualizou){
+        atual->vertice=melhor;
+    }
+    return atualizou;
+}
+
 void buscaLocal(No* solucao){
     Vertice* candidato; ///vertice candidado a ser o substitudo na solução
     Vertice* bkp; ///armazena o vertice que foi alterado na solução
@@ -381,59 +528,37 @@ void buscaLocal(No* solucao){
     anterior=ultimo;/// o anterior do primeiro do da solucao é o ultimo; usada para garantir que a substituição é válida
     while(aux!=NULL){
         if(aux==solucao){///tenta alterar o primeiro elemento da solução
-            candidato=aux->tabu->outroVertice(aux->vertice);
-            ///Garante a viabilidade da alteração
-            if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
-                bkp=aux->vertice;
-                aux->vertice=candidato;
-                novoCusto=calculaCustoSolucao(solucao);
-                if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solução
-                        custoAtual=novoCusto;
+                if(aux->proximo==NULL){
+                    if(melhorVertice(ultimo,aux,ultimo)){///verifica se ocorreu uma melhora na solução
                         aux=solucao;///Reinicia a busca local com a nova solução
-                }else{///Se não ocorreu melhora desfaz a alteração na solução
-                    aux->vertice=bkp;
-                    aux=aux->proximo;
-                 }
-            }else{
-                aux=aux->proximo;
-             }
-        }else if(aux==ultimo){///Tenta alterar o ultimo elemento da solução
-                candidato=aux->tabu->outroVertice(aux->vertice);
-                ///Garante a viabilidade da alteração
-                if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==solucao->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
-                    bkp=aux->vertice;
-                    aux->vertice=candidato;
-                    novoCusto=calculaCustoSolucao(solucao);
-                    if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solucao
-                        custoAtual=novoCusto;
-                        aux=solucao;///reinicia a busca com a nova solucao
-                     }else{///Se não ocorreu melhora desfaz a alteração na solução
-                        aux->vertice=bkp;
-                        aux=aux->proximo;
-                      }
-                }else{
-                    aux=aux->proximo;
-                 }
-               }else{///Tenta alterar um elemento do mei da solucao
-                    candidato=aux->tabu->outroVertice(aux->vertice);
-                    ///Garante a viabilidade da alteração
-                    if(candidato->getIndiceCluster()==aux->vertice->getIndiceCluster()|candidato->getIndiceCluster()==aux->proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
-                        bkp=aux->vertice;
-                        aux->vertice=candidato;
-                        novoCusto=calculaCustoSolucao(solucao);
-                        if(novoCusto<custoAtual){///verifica se ocorreu uma melhora na solucao
-                            custoAtual=novoCusto;
-                            aux=solucao;///reinicia a busca com a nova solucao
-
-                        }else{///Se não ocorreu melhora desfaz a alteração na solução
-                            aux->vertice=bkp;
+                    }else{///Se não ocorreu melhora desfaz a alteração na solução
                             aux=aux->proximo;
-                         }
-                    }else{///vai para o proximo elemento da solução
-                        aux=aux->proximo;
-                     }
+                    }
+
+                }else{
+                    if(melhorVertice(ultimo,aux,aux->proximo)){///verifica se ocorreu uma melhora na solução
+                        aux=solucao;///Reinicia a busca local com a nova solução
+                    }else{///Se não ocorreu melhora desfaz a alteração na solução
+                            aux=aux->proximo;
+                    }
+
                 }
-             anterior=aux;///atualiza o elemento anterior
+
+        }else if(aux==ultimo){///Tenta alterar o ultimo elemento da solução
+            if(melhorVertice(anterior,aux,solucao)){///verifica se ocorreu uma melhora na solucao
+                aux=solucao;///reinicia a busca com a nova solucao
+            }else{///Se não ocorreu melhora desfaz a alteração na solução
+                aux=aux->proximo;
+            }
+
+       }else{///Tenta alterar um elemento do meio da solucao
+            if(melhorVertice(anterior,aux,aux->proximo)){///verifica se ocorreu uma melhora na solucao
+                aux=solucao;///reinicia a busca com a nova solucao
+            }else{///Se não ocorreu melhora desfaz a alteração na solução
+                aux=aux->proximo;
+            }
+     }
+     anterior=aux;///atualiza o elemento anterior
     }
 }
 

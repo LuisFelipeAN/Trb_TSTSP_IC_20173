@@ -54,21 +54,45 @@ int main(int argc, char** args)
 
         ///efetua uma busca VNS na solucao atual
         int custoAtual = calculaCustoSolucao(solucao);
-        int numMaxSemMelhoras=10;
-        int controle=1;
-            while(controle!=4){
-                if(controle==0) buscaLocal(solucao);
-                if(controle==1) buscaLocal2(solucao);
-                if(controle==2) buscaLocal3(solucao);
+        int controle=0;
+            while(controle<4){
+                fprintf(stdout,"controle: %d\n",controle);
+                if(controle==2) {
+                    //fprintf(stdout,"--------ANTES-------\n");
+                    //salvarSolucao(solucao);
+                    buscaLocal(solucao);
+                    //fprintf(stdout,"--------DEPOIS-------\n");
+                    //salvarSolucao(solucao);
+                }
+                if(controle==0) {
+                    //fprintf(stdout,"--------ANTES-------\n");
+                    //salvarSolucao(solucao);
+                    buscaLocal2(solucao);
+                   // fprintf(stdout,"--------DEPOIS-------\n");
+                    //salvarSolucao(solucao);
+                }
+                if(controle==1) {
+                    //fprintf(stdout,"--------ANTES-------\n");
+                   // salvarSolucao(solucao);
+                    buscaLocal3(solucao);
+                    //fprintf(stdout,"--------DEPOIS-------\n");
+                    //salvarSolucao(solucao);
+                }
+                if(controle==3){
+                    //fprintf(stdout,"--------ANTES-------\n");
+                   // salvarSolucao(solucao);
+                    buscaLocal4(solucao);
+                    //fprintf(stdout,"--------DEPOIS-------\n");
+                    //salvarSolucao(solucao);
+                }
                 int custo = calculaCustoSolucao(solucao);
                 if (custo< custoAtual){
                     custoAtual=custo;
-                    controle=1;
+                    controle=0;
                 }else{
-                    if(controle==0) controle=2;
-                    if(controle==1) controle=0;
-                    if(controle==2) controle=4;
+                   controle++;
                 }
+
             }
 
         ///adiciona a solucao atual na lista

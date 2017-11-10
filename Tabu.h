@@ -11,12 +11,15 @@ class Tabu
 {
     public:
         bool visitado;
+        int NumTrocasVertices;
         void insereVertice(Vertice *v);
         Vertice *outroVertice(Vertice *v);
         Vertice *getRandom();
         void imprimeVertices(FILE* arquivo);
+        bool efetuouTodasTrocas();
         Tabu();
         virtual ~Tabu();
+
 
     protected:
 

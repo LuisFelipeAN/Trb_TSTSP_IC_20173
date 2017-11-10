@@ -5,6 +5,7 @@ Tabu::Tabu()
     primeiroNo=NULL;
     ultimoNo  = NULL;
     visitado=false;
+    NumTrocasVertices=0;
     numVertices=0;
 }
 ///insere os Nos ordenados na lista encadeada
@@ -27,6 +28,7 @@ Vertice* Tabu::outroVertice(Vertice *v){
     Vertice* retorno=primeiroNo->vertice;
     NoTabu* aux;
     NoTabu* percorre;
+     NumTrocasVertices++;
     if(primeiroNo->vertice==v&&primeiroNo->proximo!=NULL){///retorna o segundo vertice da lista encadeada
 
         retorno=primeiroNo->vertice;
@@ -57,7 +59,6 @@ Vertice* Tabu::outroVertice(Vertice *v){
             percorre->proximo=percorre->proximo->proximo;
             ultimoNo->proximo=NULL;
 
-
         }
 
      }
@@ -79,6 +80,14 @@ Vertice* Tabu::getRandom(){
         aux=aux->proximo;
     }
     return aux->vertice;
+}
+bool Tabu::efetuouTodasTrocas(){
+    if(NumTrocasVertices<numVertices){
+        return false;
+    }else{
+        NumTrocasVertices=0;
+        return true;
+    }
 }
 Tabu::~Tabu()
 {

@@ -33,6 +33,7 @@ void imprimeVerificacaoViabilidade(No* solucao);
 void buscaLocal3(No* solucao);
 void buscaLocal2(No* solucao);
 void buscaLocal(No* solucao);
+void buscaLocal4(No* solucao);
 int calculaCustoSolucao(No* solucao);
 
 void desalocaMemoria(No* solucao);

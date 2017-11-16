@@ -103,3 +103,4 @@ Tabu::~Tabu()
     primeiroNo=NULL;
     ultimoNo =NULL;
 }
+int Tabu::getNumVertices(){return numVertices;}

@@ -1,7 +1,6 @@
 #include "Programa.h"
 #include "Vertice.h"
 
-
 ///vertor de tabus do problema
 static Tabu* tabus;
 
@@ -15,21 +14,66 @@ static Vertice *primeiro;
 static Vertice *ponteiro;
 
 static FILE* arqSaida;
-
+static double penalisacao = 0;
 ///calcula o custo da solucao
+
+
+static int z=0;
+
+static void atualizaPenalizacao(){
+    double maiorCusto=0;
+    for(Vertice * v = primeiro;v!=NULL;v=v->getProximo()){
+                for(Vertice * v2 = primeiro;v2!=NULL;v2=v2->getProximo()){
+                if(v!=v2){
+                    double d = v->calculaCusto(v2);
+                    if(d>maiorCusto){
+                        maiorCusto = d;
+                    }
+                }
+        }
+    }
+    penalisacao = 10*maiorCusto;
+}
+double getPenalizacao(){
+    return penalisacao;
+}
 int calculaCustoSolucao(No* solucao){
 
     double somaCusto=0;
     No * aux ;
+    int k=0;
+    No* anterior;
     if(solucao!=NULL){
         for(aux = solucao; aux->proximo!=NULL;aux=aux->proximo){
-                somaCusto+=aux->vertice->calculaCusto(aux->proximo->vertice);
+                if(aux->vertice->getIndiceCluster()== aux->proximo->vertice->getIndiceCluster()){
+                    somaCusto+=aux->vertice->calculaCusto(aux->proximo->vertice);
+                }
+                else{
+                    somaCusto+=penalisacao;
+                    //somaCusto+=aux->vertice->calculaCusto(aux->proximo->vertice);
+                }
+                anterior=aux;
+
         }
         ///calcula a distancia do penultimo ao ultimo
-        somaCusto+=aux->vertice->calculaCusto(aux->vertice);
+        if(anterior->vertice->getIndiceCluster()== aux->vertice->getIndiceCluster()){
+            somaCusto+=anterior->vertice->calculaCusto(aux->vertice);
+        }
+        else{
+            somaCusto+=penalisacao;
+            //somaCusto+=anterior->vertice->calculaCusto(aux->vertice);
+        }
 
         ///calcula a distancia do primeiro ao ultimo
-        somaCusto+=solucao->vertice->calculaCusto(aux->vertice);
+        if(solucao->vertice->getIndiceCluster()== aux->vertice->getIndiceCluster()){
+            somaCusto+=solucao->vertice->calculaCusto(aux->vertice);
+        }
+        else{
+            somaCusto+=penalisacao;
+           // somaCusto+=solucao->vertice->calculaCusto(aux->vertice);
+        }
+
+
     }
 
     return floor(somaCusto);
@@ -179,7 +223,6 @@ void inicializa(FILE* arquivoEntrada, FILE* arquivoSaida){
     fscanf(arquivoEntrada,"%d %d %d",&numTotalVertices,&numTotalClusters,&numTotalTabus);
     ///Aloca o vetor de Tabus
     tabus= new Tabu[numTotalTabus];
-
     double x,y;
     int id,cont=0,idT,idC;
 
@@ -204,366 +247,13 @@ void inicializa(FILE* arquivoEntrada, FILE* arquivoSaida){
         cont++;
     }
     fclose(arquivoEntrada);
+    atualizaPenalizacao();
 
 };
 
-///Efetua uma busca local trocando vertices adjacentes que possuam um mesmo cluster
-void buscaLocal3(No* solucao){
-
-    No * ultimo=solucao;
-    while(ultimo->proximo!=NULL){///encontra o ultimo No da solucao;
-        ultimo=ultimo->proximo;
-    }
-    No* noAnt=solucao;
-    No* noAtual=solucao->proximo;
-    No* noProx=solucao->proximo->proximo;
-    int custoAtual=calculaCustoSolucao(solucao);
-    while(noProx!=NULL){
-        if(noAtual->vertice->getIndiceCluster()==noProx->vertice->getIndiceCluster()){
-            noAnt->proximo=noProx;
-            noAtual->proximo=noProx->proximo;
-            noProx->proximo=noAtual;
-            int custo = calculaCustoSolucao(solucao);
-            if(custo<custoAtual){
-                custoAtual=custo;
-                noAnt=solucao;
-                noAtual=solucao->proximo;
-                noProx=solucao->proximo->proximo;
-            }else{
-                noProx->proximo=noAtual->proximo;
-                noAtual->proximo=noAnt->proximo;
-                noAnt->proximo=noAtual;
-
-                noAnt=noAtual;
-                noAtual=noProx->proximo;
-
-                if(noProx->proximo!=NULL){
-                    noProx=noProx->proximo->proximo;
-                }else break;
-            }
-        }
-        noAnt=noAtual;
-        noAtual=noAtual->proximo;
-        if(noProx!=NULL){
-            noProx=noProx->proximo;
-        } else break;
-    }
-}
-
-///Funcao que efetua a troca de dois clustes adjacentes tanto na solucao quanto na lista duplamente encadeada atual
-void trocaClusters(Cluster *cAtual){
-    Cluster* cAnt=cAtual->anterior;
-    Cluster* cProx=cAtual->proximo;
-
-
-    cAnt->fim->proximo=cProx->inicio;
-
-    ///o fim do atual aponta para o fim do proximo
-    cAtual->fim->proximo=cProx->fim->proximo;
-
-    ///o fim do proximo aponta para o inicio do atual
-    cProx->fim->proximo=cAtual->inicio;
-
-    ///liga o proximo do anterior no proximo
-    cAnt->proximo=cProx;
-
-    ///liga o anterior do proximo no proximo
-    cProx->anterior=cAnt;
-
-    ///liga o proximo do atual ao proximo do proximo
-    cAtual->proximo=cProx->proximo;
-
-    ///liga o proximo do atual ao atual
-    cProx->proximo=cAtual;
-
-    ///liga o anterior do atual no proximo
-    cAtual->anterior=cProx;
-
-}
-
-bool inverteOrdemVisita(Cluster *cAtual){
-    No* ant= cAtual->inicio;
-    No* prox= cAtual->inicio->proximo;
-    if(prox->vertice->getIndiceCluster()!=ant->vertice->getIndiceCluster()){
-        return false;
-    }
-    while(ant!=cAtual->fim){
-        No* aux=prox->proximo;
-        prox->proximo=ant;
-        ant=prox;
-        prox=aux;
-    }
-    No* aux=cAtual->inicio;
-    cAtual->inicio=cAtual->fim;
-    cAtual->fim=aux;
-    return true;
-
-}
-
-bool inverteOrdemVisita(Cluster *cInicial,Cluster *cAtual,Cluster *cAnterior,Cluster *cProximo){
-    int custoAtual = calculaCustoSolucao(cInicial->inicio);
-
-    if(inverteOrdemVisita(cAtual)){
-        cAtual->fim->proximo=cProximo->inicio;
-        cAnterior->fim->proximo=cAtual->inicio;
-        int novoCusto=calculaCustoSolucao(cInicial->inicio);
-        if(novoCusto<custoAtual){
-            return true;
-        }
-        else{
-            inverteOrdemVisita(cAtual);
-            cAtual->fim->proximo=cProximo->inicio;
-            cAnterior->fim->proximo=cAtual->inicio;
-            return false;
-        }
-    }
-    return false;
-}
-
-///Efetua uma busca local trocando clusters adjacentes baseado em uma lista duplamente encadeada de clusters
-void buscaLocal4(No* solucao){
-
-    Cluster* clusterFinal = NULL;///ultimo cluster da solucao
-    int controle=1;
-    int idClusterAtual=-1;
-
-    No* ultimo=solucao;
-    while(ultimo->proximo!=NULL){///encontra o ultimo No da solucao;
-        ultimo=ultimo->proximo;
-    }
-    No* aux = solucao;
-    No* anterior=solucao;
-
-    ///Cria uma lista de clusters e encadeia pelos anteriores
-    while(aux!=NULL){
-        if(aux->vertice->getIndiceCluster()!=idClusterAtual){
-            if(controle==1){
-                controle=0;
-                Cluster* no= new Cluster();
-                no->inicio=anterior;
-                no->anterior=clusterFinal;
-                clusterFinal=no;
-                idClusterAtual=aux->vertice->getIndiceCluster();
-                anterior=aux;
-                aux=aux->proximo;
-
-            }else{
-                clusterFinal->fim=anterior;
-                controle=1;
-                anterior=aux;
-                idClusterAtual=-1;
-            }
-
-        }else{
-            anterior=aux;
-            aux=aux->proximo;
-        }
-
-    }
-    clusterFinal->fim=ultimo;
-    Cluster *clusterInicial=clusterFinal;
-    Cluster *auxcc=NULL;
-
-    ///percorre a lista encadeada por anteriores ligando os proximos
-    while(clusterInicial->anterior!=NULL){
-            auxcc=clusterInicial;
-            clusterInicial=clusterInicial->anterior;
-            clusterInicial->proximo=auxcc;
-
-    }
-    clusterInicial->proximo=auxcc;
-    Cluster *ultimoAdicionado=NULL;
-
-    int custoAtual=calculaCustoSolucao(solucao);
-
-
-    Cluster* cAtual=clusterInicial->proximo;
-    Cluster* cAnt  = clusterInicial;
-    Cluster* cProx =clusterInicial->proximo->proximo;
-
-    while(cAtual!=NULL&&cProx!=NULL){///efetua a busca local a partir da lista duplamente encadeada obtida
-            if(inverteOrdemVisita(clusterInicial,cAtual,cAnt,cProx)){
-                cAtual=clusterInicial->proximo;
-                cAnt  = clusterInicial;
-                cProx =clusterInicial->proximo->proximo;
-            }else{
-                cAnt=cAtual;
-                cAtual=cAtual->proximo;
-                cProx=cProx->proximo;
-            }
-
-    }
-
-    ///desaloca a lista de clusters criada
-    Cluster *c;
-    c = clusterInicial;
-    while(c!=NULL){
-        c=c->proximo;
-        delete clusterInicial;
-        clusterInicial=c;
-    }
-    clusterInicial=NULL;
-    clusterFinal=NULL;
-}
-///Efetua uma busca local trocando clusters adjacentes baseado em uma lista duplamente encadeada de clusters
-void buscaLocal2(No* solucao){
-
-    Cluster* clusterFinal = NULL;///ultimo cluster da solucao
-    int controle=1;
-    int idClusterAtual=-1;
-
-    No* ultimo=solucao;
-    while(ultimo->proximo!=NULL){///encontra o ultimo No da solucao;
-        ultimo=ultimo->proximo;
-    }
-    No* aux = solucao;
-    No* anterior=solucao;
-
-    ///Cria uma lista de clusters e encadeia pelos anteriores
-    while(aux!=NULL){
-        if(aux->vertice->getIndiceCluster()!=idClusterAtual){
-            if(controle==1){
-                controle=0;
-                Cluster* no= new Cluster();
-                no->inicio=anterior;
-                no->anterior=clusterFinal;
-                clusterFinal=no;
-                idClusterAtual=aux->vertice->getIndiceCluster();
-                anterior=aux;
-                aux=aux->proximo;
-
-            }else{
-                clusterFinal->fim=anterior;
-                controle=1;
-                anterior=aux;
-                idClusterAtual=-1;
-            }
-
-        }else{
-            anterior=aux;
-            aux=aux->proximo;
-        }
-
-    }
-    clusterFinal->fim=ultimo;
-    Cluster *clusterInicial=clusterFinal;
-    Cluster *auxcc=NULL;
-
-    ///percorre a lista encadeada por anteriores ligando os proximos
-    while(clusterInicial->anterior!=NULL){
-            auxcc=clusterInicial;
-            clusterInicial=clusterInicial->anterior;
-            clusterInicial->proximo=auxcc;
-
-    }
-    clusterInicial->proximo=auxcc;
-    Cluster *ultimoAdicionado=NULL;
-
-    int custoAtual=calculaCustoSolucao(solucao);
-    Cluster* cAtual=clusterInicial->proximo;
-    int i=0;
-    while(cAtual!=NULL){///efetua a busca local a partir da lista duplamente encadeada obtida
-            Cluster* ant=cAtual->anterior;
-            if(cAtual->anterior!=NULL&&cAtual->proximo!=NULL){
-                trocaClusters(cAtual);
-                int custo = calculaCustoSolucao(solucao);
-                if(custo<custoAtual){
-                    custoAtual=custo;
-                    cAtual=clusterInicial->proximo;
-                }else{
-                    trocaClusters(ant->proximo);
-                    cAtual=ant->proximo->proximo;
-                }
-            }else{
-                cAtual=cAtual->proximo;
-            }
-
-    }
-
-    ///desaloca a lista de clusters criada
-    Cluster *c;
-    c = clusterInicial;
-    while(c!=NULL){
-        c=c->proximo;
-        delete clusterInicial;
-        clusterInicial=c;
-    }
-    clusterInicial=NULL;
-    clusterFinal=NULL;
-}
-///Busca o vertice de menor custo dentro do tabu
-bool melhorVertice(No* anterior, No* atual, No* proximo){
-    Vertice *melhor = atual->vertice;
-    bool atualizou=false;
-    double custoAtual=anterior->vertice->calculaCusto(atual->vertice)+atual->vertice->calculaCusto(proximo->vertice);
-    Vertice *candidato=atual->vertice;
-    while(!atual->tabu->efetuouTodasTrocas()){
-        candidato = atual->tabu->outroVertice(candidato);
-        if(candidato->getIndiceCluster()==atual->vertice->getIndiceCluster()|candidato->getIndiceCluster()==proximo->vertice->getIndiceCluster()|candidato->getIndiceCluster()==anterior->vertice->getIndiceCluster()){
-            double novoCusto=anterior->vertice->calculaCusto(candidato)+candidato->calculaCusto(proximo->vertice);
-            if(novoCusto<custoAtual){
-                atualizou=true;
-                melhor=candidato;
-                custoAtual=novoCusto;
-            }
-        }
-    }
-    if(atualizou){
-        atual->vertice=melhor;
-    }
-    return atualizou;
-}
-
-void buscaLocal(No* solucao){
-    Vertice* candidato; ///vertice candidado a ser o substitudo na solução
-    Vertice* bkp; ///armazena o vertice que foi alterado na solução
-    int custoAtual = calculaCustoSolucao(solucao);///armazena o custo atual da solução
-    int novoCusto;///armazena o custo da nova soluçã
-    No * ultimo=solucao;
-    No * anterior;
-    while(ultimo->proximo!=NULL){///encontra o ultimo No da solucao;
-        ultimo=ultimo->proximo;
-    }
-    No* aux= solucao;
-    anterior=ultimo;/// o anterior do primeiro do da solucao é o ultimo; usada para garantir que a substituição é válida
-    while(aux!=NULL){
-        if(aux==solucao){///tenta alterar o primeiro elemento da solução
-                if(aux->proximo==NULL){
-                    if(melhorVertice(ultimo,aux,ultimo)){///verifica se ocorreu uma melhora na solução
-                        aux=solucao;///Reinicia a busca local com a nova solução
-                    }else{///Se não ocorreu melhora desfaz a alteração na solução
-                            aux=aux->proximo;
-                    }
-
-                }else{
-                    if(melhorVertice(ultimo,aux,aux->proximo)){///verifica se ocorreu uma melhora na solução
-                        aux=solucao;///Reinicia a busca local com a nova solução
-                    }else{///Se não ocorreu melhora desfaz a alteração na solução
-                            aux=aux->proximo;
-                    }
-
-                }
-
-        }else if(aux==ultimo){///Tenta alterar o ultimo elemento da solução
-            if(melhorVertice(anterior,aux,solucao)){///verifica se ocorreu uma melhora na solucao
-                aux=solucao;///reinicia a busca com a nova solucao
-            }else{///Se não ocorreu melhora desfaz a alteração na solução
-                aux=aux->proximo;
-            }
-
-       }else{///Tenta alterar um elemento do meio da solucao
-            if(melhorVertice(anterior,aux,aux->proximo)){///verifica se ocorreu uma melhora na solucao
-                aux=solucao;///reinicia a busca com a nova solucao
-            }else{///Se não ocorreu melhora desfaz a alteração na solução
-                aux=aux->proximo;
-            }
-     }
-     anterior=aux;///atualiza o elemento anterior
-    }
-}
-
 ///salva a solucao no arquivo de saida
 void salvarSolucao(No* solucao){
+    int i = 0;
     Vertice *v;
     fprintf(arqSaida,"#Resultado\n");
     fprintf(arqSaida,"#Custo: %d\n",calculaCustoSolucao(solucao));
@@ -571,9 +261,13 @@ void salvarSolucao(No* solucao){
     for(No *aux=solucao;aux!=NULL;aux=aux->proximo){
         v=aux->vertice;
         fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu()+1);
+        i++;
     }
     v=solucao->vertice;
     fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu()+1);
+    if(i==numTotalTabus){
+        fprintf(arqSaida,"#Todos os Tabus foram visitados\n");
+    }
 }
 
 ///desaloca uma solucao com o ponteiro inicial dado pelo parametro solucao

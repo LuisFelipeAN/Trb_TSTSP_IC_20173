@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Programa.h"
+#include "BuscaLocal.h"
 using namespace std;
 
 ///estrutura para encadear as solucoes geradas
@@ -49,29 +50,30 @@ int main(int argc, char** args)
 
     int minimo=99999999;///melhor de todas as solucoes
     No* melhorSolucao;
-    for(int i=0;i<10;i++){
+    for(int i=0;i<1500;i++){
         No* solucao = construtivo();///obtem uma solucao inicial
 
         ///efetua uma busca VNS na solucao atual
         int custoAtual = calculaCustoSolucao(solucao);
         int controle=0;
             while(controle<4){
-                fprintf(stdout,"controle: %d\n",controle);
-                if(controle==2) {
+                //fprintf(stdout,"controle: %d\n",controle);
+                //salvarSolucao(solucao);
+                if(controle==0) {
                     //fprintf(stdout,"--------ANTES-------\n");
                     //salvarSolucao(solucao);
                     buscaLocal(solucao);
                     //fprintf(stdout,"--------DEPOIS-------\n");
                     //salvarSolucao(solucao);
                 }
-                if(controle==0) {
+                if(controle==1) {
                     //fprintf(stdout,"--------ANTES-------\n");
                     //salvarSolucao(solucao);
                     buscaLocal2(solucao);
                    // fprintf(stdout,"--------DEPOIS-------\n");
                     //salvarSolucao(solucao);
                 }
-                if(controle==1) {
+                if(controle==2) {
                     //fprintf(stdout,"--------ANTES-------\n");
                    // salvarSolucao(solucao);
                     buscaLocal3(solucao);

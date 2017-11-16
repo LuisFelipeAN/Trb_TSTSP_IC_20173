@@ -8,18 +8,12 @@ using namespace std;
 
 ///estrutura para encadear os vertices presentes na solucao
 typedef struct No{
+    No *anterior;
     No *proximo;
     Tabu* tabu;
     Vertice* vertice;
 } No;
-
-///estrutura para encadear os clusters presentes na solucao
-typedef struct Cluster{
-    No*inicio;
-    No*fim;
-    Cluster* proximo;
-    Cluster* anterior;
-}Cluster;
+double getPenalizacao();
 
 void inicializa(FILE* arquivoEntrada,FILE* arquivoSaida);
 
@@ -30,10 +24,10 @@ void imprimeSolucao(No* solucao);
 void imprimeTabus(No* solucao);
 
 void imprimeVerificacaoViabilidade(No* solucao);
-void buscaLocal3(No* solucao);
-void buscaLocal2(No* solucao);
-void buscaLocal(No* solucao);
-void buscaLocal4(No* solucao);
+
+
+
+
 int calculaCustoSolucao(No* solucao);
 
 void desalocaMemoria(No* solucao);

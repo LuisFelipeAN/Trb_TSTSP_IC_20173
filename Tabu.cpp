@@ -81,6 +81,34 @@ Vertice* Tabu::getRandom(){
     }
     return aux->vertice;
 }
+
+Vertice * Tabu::getRamdomCluster(int IdCluster){
+    int cont =0;
+     for(NoTabu *aux = primeiroNo;aux!=NULL;aux=aux->proximo){
+           if(aux->vertice->getIndiceCluster()==IdCluster){
+                cont++;
+           }
+    }
+   int vRand;
+    if(cont!=0)
+        vRand = rand() % cont;
+    else
+        vRand=0;
+    if(IdCluster == 2){
+        int vsav;
+    }
+    cont=0;
+    for(NoTabu *aux = primeiroNo;aux!=NULL;aux=aux->proximo){
+           if(aux->vertice->getIndiceCluster()==IdCluster){
+                if(vRand==cont){
+                    return aux->vertice;
+                }
+                cont++;
+           }
+    }
+    return NULL;
+
+}
 bool Tabu::efetuouTodasTrocas(){
     if(NumTrocasVertices<numVertices){
         return false;

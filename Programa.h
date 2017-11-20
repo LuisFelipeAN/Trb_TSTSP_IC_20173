@@ -4,14 +4,16 @@
 #include <string.h>
 #include <stdio.h>
 #include "Tabu.h"
+#include "ClusterInstancia.h"
 using namespace std;
 
 ///estrutura para encadear os vertices presentes na solucao
 typedef struct No{
-    No *anterior;
+    No *anterior;///ponteiro do anterior e atualizado apenas para efetuar uma busca local
     No *proximo;
     Tabu* tabu;
     Vertice* vertice;
+    ClusterInstancia* cluster;
 } No;
 double getPenalizacao();
 
@@ -25,7 +27,7 @@ void imprimeTabus(No* solucao);
 
 void imprimeVerificacaoViabilidade(No* solucao);
 
-
+ClusterInstancia* getCluster(int id);
 
 
 int calculaCustoSolucao(No* solucao);

@@ -3,6 +3,7 @@
 
 ///vertor de tabus do problema
 static Tabu* tabus;
+static ClusterInstancia* clusters;
 
 ///variaveis para a quantidade de tabus,vertices e clusters do problema
 static int numTotalTabus;
@@ -45,32 +46,25 @@ int calculaCustoSolucao(No* solucao){
     No* anterior;
     if(solucao!=NULL){
         for(aux = solucao; aux->proximo!=NULL;aux=aux->proximo){
-                if(aux->vertice->getIndiceCluster()== aux->proximo->vertice->getIndiceCluster()){
-                    somaCusto+=aux->vertice->calculaCusto(aux->proximo->vertice);
-                }
-                else{
+                somaCusto+=aux->vertice->calculaCusto(aux->proximo->vertice);
+                if(aux->vertice->getIndiceCluster()!= aux->proximo->vertice->getIndiceCluster()){
                     somaCusto+=penalisacao;
-                    //somaCusto+=aux->vertice->calculaCusto(aux->proximo->vertice);
                 }
                 anterior=aux;
 
         }
         ///calcula a distancia do penultimo ao ultimo
-        if(anterior->vertice->getIndiceCluster()== aux->vertice->getIndiceCluster()){
-            somaCusto+=anterior->vertice->calculaCusto(aux->vertice);
-        }
-        else{
+        somaCusto+=anterior->vertice->calculaCusto(aux->vertice);
+
+        if(anterior->vertice->getIndiceCluster()!= aux->vertice->getIndiceCluster()){
             somaCusto+=penalisacao;
-            //somaCusto+=anterior->vertice->calculaCusto(aux->vertice);
         }
 
         ///calcula a distancia do primeiro ao ultimo
-        if(solucao->vertice->getIndiceCluster()== aux->vertice->getIndiceCluster()){
+
             somaCusto+=solucao->vertice->calculaCusto(aux->vertice);
-        }
-        else{
+        if(solucao->vertice->getIndiceCluster()!= aux->vertice->getIndiceCluster()){
             somaCusto+=penalisacao;
-           // somaCusto+=solucao->vertice->calculaCusto(aux->vertice);
         }
 
 
@@ -86,20 +80,28 @@ void imprimeSolucao(No* solucao){
     }
     fprintf(arqSaida,"\n");
 }
+No* solucao=NULL;
 ///Funcao calcula aondo o novo Vertice sera inserido na lista de solucao
-void calculaInsercao(No* solucao,Vertice *v){
+void calculaInsercao(Vertice *v){
      No *anterior;
      No *novo = new No();
 
      novo->vertice=v;
      novo->proximo=NULL;
      novo->tabu=&tabus[v->getIndiceTabu()];
+     novo->cluster=&clusters[v->getIndiceCluster()];
+     if(solucao==NULL){
+        novo->proximo=novo;
+        solucao=novo;
+     }else{
+
+
 
      double custoMinimo = 9999999;
      bool controleInsecaoIntraClusters=false;
      double custo=0;
      No *noAtual;
-     for(noAtual=solucao;noAtual->proximo!=NULL;noAtual=noAtual->proximo){
+     for(noAtual=solucao;noAtual->proximo!=solucao;noAtual=noAtual->proximo){
         ///verifica se o cluster do vertice a ser inserido é igual a pelo menos um dos extremos (vertices de um mesmo cluster tem que estar consecutivos)
         if(noAtual->vertice->getIndiceCluster()==v->getIndiceCluster()||noAtual->proximo->vertice->getIndiceCluster()==v->getIndiceCluster()){
             custo=0;
@@ -131,74 +133,81 @@ void calculaInsercao(No* solucao,Vertice *v){
         anterior->proximo=novo;
     }else{ /// senao insira o vertice no final da solucao
         noAtual->proximo= novo;
+        novo->proximo=solucao;
      }
+     }
+}
+int clusterMenorDiferenca(){
+    ClusterInstancia* menor;
+    int id=-1;
+    int dif=9999999;
+    for(int i=0;i<numTotalClusters;i++){
+            if(clusters[i].getDifVisitados_Total()!=0){
+                if(clusters[i].getDifVisitados_Total()<dif){
+                    dif=clusters[i].getDifVisitados_Total();
+                    menor = &clusters[i];
+                    id=i;
+                }
+            }
+    }
+    return id;
 }
 No* construtivo(){
     int numTabusVisitados = 0;
-    No *solucao;
+    solucao;
     ///inicia a solucao com vertices aleatorios de 3 tabus aleatorios
-    solucao = new No();
-    int indiceTabu = rand() % numTotalTabus;
-    solucao->vertice = tabus[indiceTabu].getRandom();
-    solucao->proximo = NULL;
-    solucao->tabu = &tabus[indiceTabu];
-    tabus[solucao->vertice->getIndiceTabu()].visitado=true;
-
-    No * aux;
-    aux = new No();
-    indiceTabu = rand() % numTotalTabus;
-    while(tabus[indiceTabu].visitado){///Garante que o tabu solucionado nao foi visitado
-        indiceTabu = rand() % numTotalTabus;
+    solucao = NULL;
+    for(int i=0;i<numTotalClusters;i++){
+        clusters[i].visitado=false;
+        clusters[i].numPresenteSolucao=0;
     }
-    aux->vertice= tabus[indiceTabu].getRandom();
-    aux->proximo= NULL;
-    aux->tabu = &tabus[indiceTabu];
-    tabus[aux->vertice->getIndiceTabu()].visitado=true;
-
-    No * aux2;
-    aux2 = new No();
-    indiceTabu = rand() % numTotalTabus;
-    while(tabus[indiceTabu].visitado){///Garante que o tabu solucionado nao foi visitado
-        indiceTabu = rand() % numTotalTabus;
-    }
-    aux2->vertice=tabus[indiceTabu].getRandom();
-    int controle = 0;
-
-    ///Garante que nos tres primeiros vertices adicionados seus clusters sejam todos diferentes ou iguais consecutivos
-    while(aux2->vertice->getIndiceCluster()==solucao->vertice->getIndiceCluster()&&aux2->vertice->getIndiceCluster()!=aux->vertice->getIndiceCluster()){
-         aux2->vertice=tabus[indiceTabu].getRandom();
-         controle++;
-         if(controle>3){///se tentar tres vezes conseguir um vertice no tabu atual outro nao visitado eh sorteado
-                controle=0;
-                indiceTabu = rand() % numTotalTabus;
-                while(tabus[indiceTabu].visitado){///Garante que o tabu solucionado nao foi visitado
-                    indiceTabu = rand() % numTotalTabus;
-            }
-         }
-    }
-    aux2->proximo= NULL;
-    aux2->tabu = &tabus[indiceTabu];
-    tabus[aux2->vertice->getIndiceTabu()].visitado=true;
-
-    ///Encadeia os vertices encontrados na solucao
-    aux->proximo=aux2;
-    solucao->proximo=aux;
-
-    numTabusVisitados=3;
+    numTabusVisitados=0;
     ///Perrcorre a lista de vertices inserindo na solução
     while(numTabusVisitados<numTotalTabus){
-        for(ponteiro = primeiro; ponteiro != NULL ;ponteiro=ponteiro->getProximo()){
-            if(!tabus[ponteiro->getIndiceTabu()].visitado){ ///verifica se o tabu do vertice atual nao foi visitado
-                tabus[ponteiro->getIndiceTabu()].visitado=true; /// marca o tabu como visitado para garantir as restricoes do problema
-                numTabusVisitados++;
-                calculaInsercao(solucao,ponteiro);
-            }
+        Tabu *sorteado=NULL;
+        int idC=0;
+        while(sorteado==NULL){
+            idC=rand() % numTotalClusters;
+            ClusterInstancia *c = &clusters[idC];
+            sorteado=c->getTabuRandom();
         }
+        clusters[idC].numPresenteSolucao++;
+        clusters[idC].visitado=true;
+        sorteado->visitado=true;
+        numTabusVisitados++;
+        Vertice* v = sorteado->getRamdomCluster(idC);
+        calculaInsercao(v);
+
+
+
     }
     for(int i=0;i<numTotalTabus;i++){
         tabus[i].visitado=false;
     }
-    return solucao;
+    No * corta=solucao->proximo;
+    while(corta->proximo!=solucao){
+        corta=corta->proximo;
+    }
+    corta->proximo=NULL;
+
+    bool ok=true;
+
+    for(int i=0;i<numTotalClusters;i++){
+       if(clusters[i].visitado==false){
+            ok=false;
+            break;
+
+       }
+    }
+    if(!ok){
+         desalocaSolucao(solucao);
+         return NULL;
+    }else{
+         return solucao;
+    }
+}
+ClusterInstancia* getCluster(int id){
+    return &clusters[id];
 }
 ///percorre o vetor de tabus imprimindo os seus respectivos vertices
 void imprimeTabus(No* solucao){
@@ -223,6 +232,7 @@ void inicializa(FILE* arquivoEntrada, FILE* arquivoSaida){
     fscanf(arquivoEntrada,"%d %d %d",&numTotalVertices,&numTotalClusters,&numTotalTabus);
     ///Aloca o vetor de Tabus
     tabus= new Tabu[numTotalTabus];
+    clusters = new ClusterInstancia[numTotalClusters];
     double x,y;
     int id,cont=0,idT,idC;
 
@@ -230,9 +240,12 @@ void inicializa(FILE* arquivoEntrada, FILE* arquivoSaida){
     fscanf(arquivoEntrada, "%d\t%lf\t%lf\t%d\t%d\n",&id,&x,&y,&idC,&idT);
     ///Converte o tabus para a forma de represetnacao
     idT=idT-1;
+    idC=idC-1;
     Vertice* inicial = new Vertice(id,x,y,idC,idT);
 
     tabus[idT].insereVertice(inicial);
+    clusters[idC].adicionaTabu(&tabus[idT]);
+    clusters[idC].numVertices++;
     ponteiro = inicial;
     primeiro = inicial;
 
@@ -240,8 +253,11 @@ void inicializa(FILE* arquivoEntrada, FILE* arquivoSaida){
     while(cont<numTotalVertices-1){
         fscanf(arquivoEntrada, "%d\t%lf\t%lf\t%d\t%d\n",&id,&x,&y,&idC,&idT);
         idT=idT-1;
+        idC=idC-1;
         Vertice* aux = new Vertice(id,x,y,idC,idT);
         tabus[idT].insereVertice(aux);
+        clusters[idC].adicionaTabu(&tabus[idT]);
+        clusters[idC].numVertices++;
         ponteiro->setProximo(aux);
         ponteiro = aux;
         cont++;
@@ -257,14 +273,16 @@ void salvarSolucao(No* solucao){
     Vertice *v;
     fprintf(arqSaida,"#Resultado\n");
     fprintf(arqSaida,"#Custo: %d\n",calculaCustoSolucao(solucao));
+    fprintf(arqSaida,"#Penalizacao: %lf\n",penalisacao);
     fprintf(arqSaida,"#Rota: (idV|X|Y|idC|idT)\n");
+
     for(No *aux=solucao;aux!=NULL;aux=aux->proximo){
         v=aux->vertice;
-        fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu()+1);
+        fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster()+1,v->getIndiceTabu()+1);
         i++;
     }
     v=solucao->vertice;
-    fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster(),v->getIndiceTabu()+1);
+    fprintf(arqSaida,"%d\t%lf\t%lf\t%d\t%d\n",v->getIDVertice(),v->getCordX(),v->getCordY(),v->getIndiceCluster()+1,v->getIndiceTabu()+1);
     if(i==numTotalTabus){
         fprintf(arqSaida,"#Todos os Tabus foram visitados\n");
     }

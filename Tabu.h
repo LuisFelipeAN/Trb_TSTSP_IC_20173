@@ -15,7 +15,7 @@ class Tabu
         void insereVertice(Vertice *v);
         Vertice *outroVertice(Vertice *v);
         Vertice *getRandom();
-        Vertice *getRamdom(int IdCluster);
+        Vertice *getRamdomCluster(int IdCluster);
         void imprimeVertices(FILE* arquivo);
         bool efetuouTodasTrocas();
         int getNumVertices();

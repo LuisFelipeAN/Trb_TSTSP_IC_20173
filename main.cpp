@@ -17,6 +17,7 @@ int main(int argc, char** args)
     if (argc == 4){
         arquivoEntrada = fopen(args[1], "r");
         arquivoSaida = fopen(args[2], "w");
+        fprintf(stdout, "PROCESSANDO\nEntrada: %s\nSaida: %s\n",args[1],args[2]);
             if(!arquivoEntrada){
                 fprintf(stderr, "Arquivo invalido!");
                 exit(1);
@@ -24,12 +25,14 @@ int main(int argc, char** args)
         srand(atoi(args[3]));
     } else if ( argc == 3 ) {
             arquivoEntrada = fopen(args[1], "r");
+            fprintf(stdout, "PROCESSANDO\nEntrada: %s\nSaida: %s\n",args[1],"stdout");
             if(!arquivoEntrada){
                 fprintf(stderr, "Arquivo invalido!");
                 exit(1);
             }
             srand(atoi(args[2]));
         } else if( argc == 2){
+                fprintf(stdout, "PROCESSANDO\nEntrada: %s\nSaida: %s\n","stdin","stdout");
                 srand(atoi(args[1]));
 
             }else if(argc > 3){
@@ -51,13 +54,16 @@ int main(int argc, char** args)
     int minimo=99999999;///melhor de todas as solucoes
     No* melhorSolucao;
     for(int i=0;i<1500;i++){
-        No* solucao = construtivo();///obtem uma solucao inicial
-
+        No* solucao = NULL;
+        while(solucao==NULL){
+            solucao = construtivo();///obtem uma solucao inicial
+        }
         ///efetua uma busca VNS na solucao atual
         int custoAtual = calculaCustoSolucao(solucao);
         int controle=0;
-            while(controle<4){
-                //fprintf(stdout,"controle: %d\n",controle);
+           fprintf(stdout,"------Interacao: %d\n",i);
+           while(controle<4){
+                fprintf(stdout,"-------------controle: %d\n",controle);
                 //salvarSolucao(solucao);
                 if(controle==0) {
                     //fprintf(stdout,"--------ANTES-------\n");

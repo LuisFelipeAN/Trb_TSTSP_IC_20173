@@ -1,7 +1,7 @@
 #!/bin/bash
 LOCAL_INSTANCIAS=INSTANCIAS
 NUM_EXPERIMENTOS=0
-NUM_SEMENTE=10
+NUM_SEMENTE=30
 Dados=() 
 Experimentos=()
 
@@ -93,38 +93,66 @@ for ((i=0; i<$NUM_EXPERIMENTOS; i++))
 	echo "${Experimentos[i]}.txt"
 	for ((j=0; j<$NUM_SEMENTE; j++))
 	do 	
-	gnuplot < $LOCAL_SAIDA_SCRIPTS/script-saida-${Experimentos[i]}-$j.txt
+	echo ${Experimentos[i]}.txt
+	#gnuplot < $LOCAL_SAIDA_SCRIPTS/script-saida-${Experimentos[i]}-$j.txt
   done
 done
 
 echo "-----------------------------------"
 echo "CRIANDO TABELAS DOS VALORES OBTIDOS PARA CADA SEMENTE"
+MEDIAS=()
+DESVIOS=()
 for ((i=0; i<$NUM_EXPERIMENTOS; i++))
    do
+	MEDIA=0
+	DESV_PAD=0
+	TODOS_VALORES=()
 	echo "#${Experimentos[i]}" > $LOCAL_SAIDA_VALORES/${Experimentos[i]}.txt
 	echo "${Experimentos[i]}.txt"
+	VALORES_OBTIDOS=()
 	for ((j=0; j<$NUM_SEMENTE; j++))
 	do
 		NOME=saida-${Experimentos[i]}-$j
 		ARQ=$(grep '#' $LOCAL_SAIDA_RESULTADOS/$NOME.txt | tr '\n' " " )
 		VALORES=(${ARQ//#/ })
 		echo "$j""     ""${VALORES[2]}" >> $LOCAL_SAIDA_VALORES/${Experimentos[i]}.txt
+		TODOS_VALORES=(${TODOS_VALORES[@]} ${VALORES[2]})
+	done 
+	SOMA=0
+	for ((j=0; j<$NUM_SEMENTE; j++))
+	do
+		let SOMA=$SOMA+${TODOS_VALORES[j]}
 	done
+	MEDIA=$(echo "scale=5 ; $SOMA / $NUM_SEMENTE" | bc)
+	echo "Media $MEDIA"
+	SOMA_AUX=0;
+	for ((j=0; j<$NUM_SEMENTE; j++))
+	do	
+		AUX=$(echo "scale=5 ;  $MEDIA - ${TODOS_VALORES[j]}" | bc)
+		SOMA_AUX=$(echo "scale=5 ;  $SOMA_AUX + $AUX * $AUX" | bc)
+	done
+	DIV=$(echo "scale=5 ; $SOMA_AUX / $NUM_SEMENTE" | bc)
+	echo "DIV $SOMA_AUX"
+	DESV_PAD=$(echo "scale=5; sqrt($DIV)" | bc)
+	MEDIAS=(${MEDIAS[@]} $MEDIA)
+	DESVIOS=(${DESVIOS[@]} $DESV_PAD)
 done
+
 
 for ((i=0; i<$NUM_EXPERIMENTOS; i++))
    do
 	 echo ${Experimentos[i]}.txt
 	cat > $LOCAL_SAIDA_SCRIPTS/script-valores-${Experimentos[i]}.txt << EOF
 	reset
-
+	g(x) = x
 	set grid
 	set ylabel "Custo"
 	set xlabel "Semente"
-	set title "Valores x Semente ${Experimentos[i]}"
+	set title "${Experimentos[i]} MED:${MEDIAS[i]} DP:${DESVIOS[i]}"
 	unset key
 	plot "$LOCAL_SAIDA_VALORES/${Experimentos[i]}.txt" using 1:2 w l lc 1 
     replot "$LOCAL_SAIDA_VALORES/${Experimentos[i]}.txt" using 1:2 w p pt 7 lc 1
+	replot g(${MEDIAS[i]}) lc 7 
 	set terminal png
 	set output '$LOCAL_SAIDA_VALORES/${Experimentos[i]}.png'
 	replot
